@@ -49,3 +49,29 @@ export async function requireModerator() {
   if (role !== 'admin' && role !== 'moderator') redirect('/home')
   return user
 }
+
+// Returns true if the user is an admin, OR is a moderator specifically
+// assigned to the given forum. Uses admin client to bypass RLS.
+export async function canModerateForumId(userId: string, forumId: string): Promise<boolean> {
+  const supabase = await createAdminClient()
+
+  const { data: roleData } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (!roleData) return false
+  if (roleData.role === 'admin') return true
+  if (roleData.role !== 'moderator') return false
+
+  // Moderator — check if assigned to this specific forum
+  const { data: assignment } = await supabase
+    .from('forum_moderators')
+    .select('user_id')
+    .eq('user_id', userId)
+    .eq('forum_id', forumId)
+    .maybeSingle()
+
+  return !!assignment
+}

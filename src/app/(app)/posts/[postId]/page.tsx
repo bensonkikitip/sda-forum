@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { requireUser, getUserRole } from '@/lib/auth'
+import { requireUser, canModerateForumId } from '@/lib/auth'
 import { getPostById, getCommentsForPost } from '@/lib/queries/posts'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
@@ -21,15 +21,19 @@ export const dynamic = 'force-dynamic'
 export default async function PostPage({ params }: { params: Promise<{ postId: string }> }) {
   const { postId } = await params
   const me = await requireUser()
-  const [post, comments, role] = await Promise.all([
+
+  // Fetch post first — we need forum_id before we can check mod access
+  const [post, comments] = await Promise.all([
     getPostById(postId),
     getCommentsForPost(postId),
-    getUserRole(me.id),
   ])
 
   if (!post || post.is_removed) notFound()
 
-  const isMod = role === 'admin' || role === 'moderator'
+  // Check whether this user can moderate THIS specific forum
+  const isMod = await canModerateForumId(me.id, post.forum_id)
+  // Still keep role for other checks (e.g. showing/hiding report button)
+  const role = isMod ? 'mod' : 'user'
   const author = Array.isArray(post.author) ? post.author[0] : post.author
 
   // Fetch open reports for this post and its comments (admin client bypasses RLS)

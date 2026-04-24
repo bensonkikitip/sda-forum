@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { requireUser, getUserRole } from '@/lib/auth'
+import { requireUser, canModerateForumId } from '@/lib/auth'
 import { getForumById } from '@/lib/queries/forums'
 import { getPostsForForum } from '@/lib/queries/posts'
 import { createClient } from '@/lib/supabase/server'
@@ -20,10 +20,10 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
   const user = await requireUser()
   const supabase = await createClient()
 
-  const [forum, posts, role, subResult] = await Promise.all([
+  const [forum, posts, canMod, subResult] = await Promise.all([
     getForumById(forumId),
     getPostsForForum(forumId, 'newest'),
-    getUserRole(user.id),
+    canModerateForumId(user.id, forumId),
     supabase
       .from('forum_subscriptions')
       .select('user_id')
@@ -72,7 +72,7 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
 
             <div className="flex items-center gap-2 shrink-0">
               <SubscribeButton forumId={forumId} isSubscribed={isSubscribed} />
-              {(role === 'admin' || role === 'moderator') && (
+              {canMod && (
                 <Link
                   href={`/forums/${forumId}/new-post`}
                   className={cn(buttonVariants({ size: 'sm' }), 'gap-1 bg-white text-foreground hover:bg-white/90')}

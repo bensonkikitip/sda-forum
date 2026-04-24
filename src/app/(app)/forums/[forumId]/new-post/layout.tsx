@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { requireUser, getUserRole } from '@/lib/auth'
+import { requireUser, canModerateForumId } from '@/lib/auth'
 
-// Only admins and moderators can create posts
+// Only admins and moderators assigned to this forum can create posts
 export default async function NewPostLayout({
   children,
   params,
@@ -11,9 +11,7 @@ export default async function NewPostLayout({
 }) {
   const { forumId } = await params
   const user = await requireUser()
-  const role = await getUserRole(user.id)
-  if (role !== 'admin' && role !== 'moderator') {
-    redirect(`/forums/${forumId}`)
-  }
+  const canMod = await canModerateForumId(user.id, forumId)
+  if (!canMod) redirect(`/forums/${forumId}`)
   return <>{children}</>
 }
