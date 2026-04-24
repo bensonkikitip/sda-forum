@@ -30,6 +30,7 @@ export default function ProfileEditPage() {
   const [churchSearch, setChurchSearch] = useState('')
   const [churchId, setChurchId] = useState('')
   const [churches, setChurches] = useState<Church[]>([])
+  const [churchNoResults, setChurchNoResults] = useState(false)
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
 
@@ -64,7 +65,8 @@ export default function ProfileEditPage() {
 
   // Church search
   useEffect(() => {
-    if (churchSearch.length < 1 || churchId) { setChurches([]); return }
+    setChurchNoResults(false)
+    if (churchSearch.length < 2 || churchId) { setChurches([]); return }
     const timeout = setTimeout(async () => {
       const { data } = await supabase
         .from('churches')
@@ -73,6 +75,7 @@ export default function ProfileEditPage() {
         .order('name')
         .limit(20)
       setChurches(data ?? [])
+      setChurchNoResults((data ?? []).length === 0)
     }, 300)
     return () => clearTimeout(timeout)
   }, [churchSearch, churchId, supabase])
@@ -198,9 +201,9 @@ export default function ProfileEditPage() {
               <Label htmlFor="churchSearch">SDA Church</Label>
               <Input
                 id="churchSearch"
-                placeholder="Type to search…"
+                placeholder="Type at least 2 letters to search…"
                 value={churchSearch}
-                onChange={e => { setChurchSearch(e.target.value); setChurchId('') }}
+                onChange={e => { setChurchSearch(e.target.value); setChurchId(''); setChurchNoResults(false) }}
               />
               {churches.length > 0 && !churchId && (
                 <div className="border rounded-md overflow-hidden max-h-48 overflow-y-auto shadow-sm">
@@ -209,7 +212,7 @@ export default function ProfileEditPage() {
                       key={c.id}
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted border-b last:border-0"
-                      onClick={() => { setChurchId(c.id); setChurchSearch(c.name); setChurches([]) }}
+                      onClick={() => { setChurchId(c.id); setChurchSearch(c.name); setChurches([]); setChurchNoResults(false) }}
                     >
                       <span className="font-medium">{c.name}</span>
                       {c.region && <span className="text-muted-foreground ml-1">— {c.region}</span>}
@@ -217,10 +220,15 @@ export default function ProfileEditPage() {
                   ))}
                 </div>
               )}
+              {churchNoResults && !churchId && (
+                <p className="text-xs text-muted-foreground">
+                  No churches found for &ldquo;{churchSearch}&rdquo;. Contact an admin to add your church.
+                </p>
+              )}
               {churchId && (
                 <p className="text-xs text-green-600">
                   ✓ Church selected.{' '}
-                  <button type="button" className="underline text-muted-foreground" onClick={() => { setChurchId(''); setChurchSearch('') }}>
+                  <button type="button" className="underline text-muted-foreground" onClick={() => { setChurchId(''); setChurchSearch(''); setChurchNoResults(false) }}>
                     Change
                   </button>
                 </p>
