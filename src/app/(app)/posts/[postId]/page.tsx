@@ -118,6 +118,7 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
           {isMod && (
             <ModActions
               postId={postId}
+              forumId={post.forum_id}
               isPinned={post.is_pinned}
               isLocked={post.is_locked}
               isRemoved={post.is_removed}

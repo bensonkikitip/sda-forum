@@ -9,12 +9,13 @@ import { toast } from 'sonner'
 
 interface Props {
   postId: string
+  forumId: string
   isPinned: boolean
   isLocked: boolean
   isRemoved: boolean
 }
 
-export function ModActions({ postId, isPinned, isLocked, isRemoved }: Props) {
+export function ModActions({ postId, forumId, isPinned, isLocked, isRemoved }: Props) {
   const [loading, setLoading] = useState<string | null>(null)
   const router = useRouter()
 
@@ -26,7 +27,12 @@ export function ModActions({ postId, isPinned, isLocked, isRemoved }: Props) {
       toast.error(error.message)
     } else {
       toast.success(`Post ${label}`)
-      router.refresh()
+      // After removing a post, redirect to the forum — the post page would 404
+      if (patch.is_removed) {
+        router.push(`/forums/${forumId}`)
+      } else {
+        router.refresh()
+      }
     }
     setLoading(null)
   }
