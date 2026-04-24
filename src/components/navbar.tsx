@@ -40,13 +40,6 @@ export async function Navbar() {
           </Link>
 
           <nav className="hidden sm:flex items-center gap-1">
-            <Link
-              href="/home"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <Home className="h-4 w-4" />
-              Home
-            </Link>
             {isModOrAdmin && (
               <Link
                 href="/admin/forums"
@@ -116,10 +109,6 @@ export async function Navbar() {
               {unreadCount}
             </span>
           )}
-        </Link>
-        <Link href="/settings" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors">
-          <Settings className="h-4 w-4 mb-0.5" />
-          Settings
         </Link>
         {isModOrAdmin && (
           <Link href="/admin/forums" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors">
