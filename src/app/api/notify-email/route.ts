@@ -57,14 +57,25 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Fetch the recipient's email preference and ban status in one query.
+  // Fetch all email prefs and ban status — select explicit columns to keep TypeScript happy.
   const { data: profile } = await admin
     .from('profiles')
-    .select(`${prefColumn}, is_banned`)
+    .select('is_banned, email_notify_replies, email_notify_mentions, email_notify_forum_subs, email_notify_announcements')
     .eq('id', recipientId)
-    .maybeSingle()
+    .maybeSingle() as { data: {
+      is_banned: boolean
+      email_notify_replies: boolean
+      email_notify_mentions: boolean
+      email_notify_forum_subs: boolean
+      email_notify_announcements: boolean
+    } | null }
 
-  if (!profile || profile.is_banned || !profile[prefColumn]) {
+  if (!profile || profile.is_banned) {
+    return NextResponse.json({ ok: true })
+  }
+
+  const wantsEmail = profile[prefColumn as keyof typeof profile]
+  if (!wantsEmail) {
     return NextResponse.json({ ok: true })
   }
 
