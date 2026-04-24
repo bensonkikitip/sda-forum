@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/server'
 import { AdminNav } from '@/components/admin-nav'
+import { ForumDetailsEditor } from './_components/forum-details-editor'
 import { ForumGroupManager } from './_components/forum-group-manager'
 import { ForumModeratorManager } from './_components/forum-moderator-manager'
 import { ChevronLeft } from 'lucide-react'
@@ -57,6 +58,12 @@ export default async function ForumDetailPage({ params }: { params: Promise<{ fo
           </div>
         </div>
       </div>
+
+      <ForumDetailsEditor
+        forumId={forumId}
+        initialName={forum.name}
+        initialDescription={forum.description}
+      />
 
       <ForumModeratorManager
         forumId={forumId}
