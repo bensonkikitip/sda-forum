@@ -11,19 +11,40 @@ export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const user = await requireUser()
+  const supabase = await createClient()
+
   const [role, forums, announcementResult] = await Promise.all([
     getUserRole(user.id),
     getForums(),
-    createClient().then(s =>
-      s.from('announcements')
-        .select('id, title, body_md, created_at')
-        .order('created_at', { ascending: false })
-        .limit(1)
-    ),
+    supabase
+      .from('announcements')
+      .select('id, title, body_md, created_at')
+      .order('created_at', { ascending: false })
+      .limit(1),
   ])
 
   const latestAnnouncement = announcementResult.data?.[0]
   const isModOrAdmin = role === 'admin' || role === 'moderator'
+
+  // Fetch the most recent non-removed post title for every visible forum
+  // in one query, then build a map: forum_id → post title
+  const latestPostByForum: Record<string, string> = {}
+  if (forums.length > 0) {
+    const forumIds = forums.map(f => f.id)
+    const { data: recentPosts } = await supabase
+      .from('posts')
+      .select('forum_id, title')
+      .in('forum_id', forumIds)
+      .eq('is_removed', false)
+      .order('created_at', { ascending: false })
+
+    // Keep only the first (newest) post seen for each forum
+    for (const post of recentPosts ?? []) {
+      if (!latestPostByForum[post.forum_id]) {
+        latestPostByForum[post.forum_id] = post.title
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -35,7 +56,6 @@ export default async function HomePage() {
           background: 'linear-gradient(135deg, var(--primary) 0%, oklch(0.22 0.10 258) 100%)',
         }}
       >
-        {/* Subtle decorative circle */}
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10 bg-white" />
         <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full opacity-5 bg-white" />
 
@@ -108,46 +128,61 @@ export default async function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {forums.map(forum => (
-              <Link key={forum.id} href={`/forums/${forum.id}`} className="group block">
-                <div className="h-full flex flex-col p-5 rounded-xl border bg-card hover:shadow-md hover:border-primary/30 transition-all duration-200">
+            {forums.map(forum => {
+              const latestTitle = latestPostByForum[forum.id]
+              return (
+                <Link key={forum.id} href={`/forums/${forum.id}`} className="group block">
+                  <div className="h-full flex flex-col p-5 rounded-xl border bg-card hover:shadow-md hover:border-primary/30 transition-all duration-200">
 
-                  {/* Icon + accent dot */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div
-                      className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                      style={{
-                        backgroundColor: forum.color ? `${forum.color}18` : 'oklch(0.96 0.005 258)',
-                      }}
-                    >
-                      {forum.icon ?? '💬'}
+                    {/* Icon + chevron */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div
+                        className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+                        style={{
+                          backgroundColor: forum.color ? `${forum.color}18` : 'oklch(0.96 0.005 258)',
+                        }}
+                      >
+                        {forum.icon ?? '💬'}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all mt-1" />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all mt-1" />
-                  </div>
 
-                  {/* Name + description */}
-                  <p className="font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
-                    {forum.name}
-                  </p>
-                  {forum.description && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                      {forum.description}
+                    {/* Name + description */}
+                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                      {forum.name}
                     </p>
-                  )}
+                    {forum.description && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                        {forum.description}
+                      </p>
+                    )}
 
-                  {/* Bottom accent line */}
-                  <div
-                    className="mt-auto pt-3 border-t border-border/50 flex items-center gap-1.5"
-                  >
-                    <div
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: forum.color ?? 'var(--primary)' }}
-                    />
-                    <span className="text-xs text-muted-foreground">View posts</span>
+                    {/* Latest post preview */}
+                    <div className="mt-auto pt-3 border-t border-border/50">
+                      {latestTitle ? (
+                        <div className="flex items-start gap-1.5">
+                          <MessageSquare
+                            className="h-3 w-3 shrink-0 mt-0.5"
+                            style={{ color: forum.color ?? 'var(--primary)' }}
+                          />
+                          <span className="text-xs text-muted-foreground line-clamp-1 leading-snug">
+                            {latestTitle}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className="h-1.5 w-1.5 rounded-full shrink-0"
+                            style={{ backgroundColor: forum.color ?? 'var(--primary)' }}
+                          />
+                          <span className="text-xs text-muted-foreground">No posts yet</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         )}
       </div>
