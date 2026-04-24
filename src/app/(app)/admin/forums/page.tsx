@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, Loader2, Globe, Lock } from 'lucide-react'
+import { Plus, Loader2, Globe, Lock, Settings } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { AdminNav } from '@/components/admin-nav'
 
@@ -245,6 +246,13 @@ export default function AdminForumsPage() {
                     </div>
                   </div>
                   <Badge variant="secondary" className="font-mono text-xs shrink-0 mt-0.5">{f.slug}</Badge>
+                  <Link
+                    href={`/admin/forums/${f.id}`}
+                    className="shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="Manage forum"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Link>
                 </div>
               )
             })}
