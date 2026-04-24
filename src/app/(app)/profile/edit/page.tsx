@@ -198,7 +198,7 @@ export default function ProfileEditPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="churchSearch">SDA Church</Label>
+              <Label htmlFor="churchSearch">SDA Church *</Label>
               <Input
                 id="churchSearch"
                 placeholder="Type at least 2 letters to search…"
@@ -235,7 +235,7 @@ export default function ProfileEditPage() {
               )}
             </div>
 
-            <Button type="submit" disabled={loading || !displayName}>
+            <Button type="submit" disabled={loading || !displayName || !churchId}>
               {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Saving…</> : 'Save changes'}
             </Button>
           </form>

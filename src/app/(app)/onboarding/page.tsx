@@ -24,13 +24,15 @@ export default function OnboardingPage() {
   const [churchSearch, setChurchSearch] = useState('')
   const [churchId, setChurchId] = useState('')
   const [churches, setChurches] = useState<Church[]>([])
+  const [churchNoResults, setChurchNoResults] = useState(false)
   const [avatar, setAvatar] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Search churches as the user types (debounced 300ms)
+  // Search churches as the user types (debounced 300ms, min 2 chars)
   useEffect(() => {
-    if (churchSearch.length < 1) { setChurches([]); return }
+    setChurchNoResults(false)
+    if (churchSearch.length < 2 || churchId) { setChurches([]); return }
     const timeout = setTimeout(async () => {
       const { data, error } = await supabase
         .from('churches')
@@ -38,10 +40,13 @@ export default function OnboardingPage() {
         .ilike('name', `%${churchSearch}%`)
         .order('name')
         .limit(20)
-      if (!error) setChurches(data ?? [])
+      if (!error) {
+        setChurches(data ?? [])
+        setChurchNoResults((data ?? []).length === 0)
+      }
     }, 300)
     return () => clearTimeout(timeout)
-  }, [churchSearch, supabase])
+  }, [churchSearch, churchId, supabase])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -161,14 +166,15 @@ export default function OnboardingPage() {
 
             {/* Church picker */}
             <div className="space-y-2">
-              <Label htmlFor="churchSearch">SDA Church</Label>
+              <Label htmlFor="churchSearch">SDA Church *</Label>
               <Input
                 id="churchSearch"
-                placeholder="Type to search your church…"
+                placeholder="Type at least 2 letters to search…"
                 value={churchSearch}
                 onChange={(e) => {
                   setChurchSearch(e.target.value)
                   setChurchId('')
+                  setChurchNoResults(false)
                 }}
               />
               {churches.length > 0 && !churchId && (
@@ -182,6 +188,7 @@ export default function OnboardingPage() {
                         setChurchId(c.id)
                         setChurchSearch(c.name)
                         setChurches([])
+                        setChurchNoResults(false)
                       }}
                     >
                       <span className="font-medium">{c.name}</span>
@@ -192,13 +199,18 @@ export default function OnboardingPage() {
                   ))}
                 </div>
               )}
+              {churchNoResults && !churchId && (
+                <p className="text-xs text-muted-foreground">
+                  No churches found for &ldquo;{churchSearch}&rdquo;. Contact an admin to add your church.
+                </p>
+              )}
               {churchId && (
                 <p className="text-xs text-green-600">
                   ✓ Church selected.{' '}
                   <button
                     type="button"
                     className="underline text-muted-foreground"
-                    onClick={() => { setChurchId(''); setChurchSearch('') }}
+                    onClick={() => { setChurchId(''); setChurchSearch(''); setChurchNoResults(false) }}
                   >
                     Change
                   </button>
@@ -208,7 +220,7 @@ export default function OnboardingPage() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button type="submit" className="w-full" disabled={loading || !displayName}>
+            <Button type="submit" className="w-full" disabled={loading || !displayName || !churchId}>
               {loading ? 'Saving…' : 'Save and continue'}
             </Button>
           </form>
