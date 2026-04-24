@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { LayoutList, Users, Flag, Megaphone } from 'lucide-react'
+import { LayoutList, Users, Flag, Megaphone, Layers } from 'lucide-react'
 
 const links = [
   { href: '/admin/forums', label: 'Forums', icon: LayoutList },
+  { href: '/admin/groups', label: 'Groups', icon: Layers },
   { href: '/admin/reports', label: 'Reports', icon: Flag },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },

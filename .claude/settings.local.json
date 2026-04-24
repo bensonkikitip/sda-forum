@@ -21,7 +21,8 @@
       "Bash(echo \"PID: $!\")",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "mcp__Claude_Preview__preview_start",
-      "Bash(kill 30189)"
+      "Bash(kill 30189)",
+      "Bash(npx shadcn@latest add checkbox)"
     ]
   }
 }
