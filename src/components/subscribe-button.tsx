@@ -49,11 +49,15 @@ export function SubscribeButton({ forumId, isSubscribed: initial }: Props) {
 
   return (
     <Button
-      variant={subscribed ? 'secondary' : 'outline'}
+      variant="outline"
       size="sm"
       onClick={toggle}
       disabled={loading}
-      className="gap-1.5"
+      className={
+        subscribed
+          ? 'gap-1.5 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white'
+          : 'gap-1.5 bg-transparent border-white/40 text-white hover:bg-white/20 hover:text-white'
+      }
     >
       {subscribed ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
       {subscribed ? 'Subscribed' : 'Subscribe'}

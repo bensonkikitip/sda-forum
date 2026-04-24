@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { requireUser, getUserRole } from '@/lib/auth'
 import { getForums } from '@/lib/queries/forums'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent } from '@/components/ui/card'
+import { buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, ChevronRight } from 'lucide-react'
+import { MessageSquare, ChevronRight, Megaphone, LayoutGrid } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,73 +14,143 @@ export default async function HomePage() {
   const [role, forums, announcementResult] = await Promise.all([
     getUserRole(user.id),
     getForums(),
-    createClient().then(s => s.from('announcements').select('id, title, body_md, created_at').order('created_at', { ascending: false }).limit(1)),
+    createClient().then(s =>
+      s.from('announcements')
+        .select('id, title, body_md, created_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
+    ),
   ])
 
   const latestAnnouncement = announcementResult.data?.[0]
+  const isModOrAdmin = role === 'admin' || role === 'moderator'
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+    <div className="min-h-screen">
 
-      {/* Announcement banner */}
-      {latestAnnouncement && (
-        <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
-          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Announcement</p>
-          <p className="font-medium">{latestAnnouncement.title}</p>
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{latestAnnouncement.body_md}</p>
+      {/* ── Hero banner ─────────────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden py-12 px-4"
+        style={{
+          background: 'linear-gradient(135deg, var(--primary) 0%, oklch(0.22 0.10 258) 100%)',
+        }}
+      >
+        {/* Subtle decorative circle */}
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10 bg-white" />
+        <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full opacity-5 bg-white" />
+
+        <div className="relative max-w-3xl mx-auto text-center">
+          <p className="text-sm font-semibold tracking-widest text-white/60 uppercase mb-3">
+            Welcome to
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-4">
+            SDA Community Forums
+          </h1>
+          <p className="text-white/70 text-base max-w-xl mx-auto leading-relaxed">
+            Stay connected with messages and updates from your pastors and church leaders.
+          </p>
         </div>
-      )}
-
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Forums</h1>
-        {(role === 'admin' || role === 'moderator') && (
-          <Link href="/admin/forums" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Manage forums →
-          </Link>
-        )}
       </div>
 
-      {/* Forum list */}
-      {forums.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <MessageSquare className="h-8 w-8 mx-auto mb-3 opacity-40" />
-            <p className="font-medium">No forums yet</p>
-            {(role === 'admin') && (
-              <p className="text-sm mt-1">
-                <Link href="/admin/forums" className="underline hover:no-underline">Create the first forum</Link>
+      {/* ── Main content ────────────────────────────────────────── */}
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+
+        {/* Announcement banner */}
+        {latestAnnouncement && (
+          <Link href="/inbox" className="block group">
+            <div className="flex gap-3 p-4 rounded-lg border-l-4 border-accent bg-accent/5 hover:bg-accent/10 transition-colors">
+              <Megaphone className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-0.5">
+                  Latest Announcement
+                </p>
+                <p className="font-semibold text-foreground">{latestAnnouncement.title}</p>
+                {latestAnnouncement.body_md && (
+                  <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                    {latestAnnouncement.body_md}
+                  </p>
+                )}
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 self-center group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </Link>
+        )}
+
+        {/* Section header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <LayoutGrid className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold">Forums</h2>
+            <Badge variant="secondary" className="font-mono text-xs">{forums.length}</Badge>
+          </div>
+          {isModOrAdmin && (
+            <Link
+              href="/admin/forums"
+              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}
+            >
+              Manage forums
+            </Link>
+          )}
+        </div>
+
+        {/* Forum cards */}
+        {forums.length === 0 ? (
+          <div className="text-center py-16 border rounded-xl bg-muted/30">
+            <MessageSquare className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+            <p className="font-semibold text-muted-foreground">No forums yet</p>
+            {isModOrAdmin && (
+              <p className="text-sm mt-2 text-muted-foreground">
+                <Link href="/admin/forums/new" className="underline hover:no-underline">
+                  Create the first forum
+                </Link>
               </p>
             )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {forums.map(forum => (
-            <Link key={forum.id} href={`/forums/${forum.id}`}>
-              <div className="flex items-center gap-4 p-4 rounded-lg border hover:border-foreground/20 hover:bg-muted/30 transition-all group">
-                {/* Icon */}
-                <div
-                  className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                  style={{ backgroundColor: forum.color ? `${forum.color}20` : undefined }}
-                >
-                  {forum.icon ?? '💬'}
-                </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {forums.map(forum => (
+              <Link key={forum.id} href={`/forums/${forum.id}`} className="group block">
+                <div className="h-full flex flex-col p-5 rounded-xl border bg-card hover:shadow-md hover:border-primary/30 transition-all duration-200">
 
-                {/* Text */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold group-hover:text-primary transition-colors">{forum.name}</p>
+                  {/* Icon + accent dot */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div
+                      className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+                      style={{
+                        backgroundColor: forum.color ? `${forum.color}18` : 'oklch(0.96 0.005 258)',
+                      }}
+                    >
+                      {forum.icon ?? '💬'}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all mt-1" />
+                  </div>
+
+                  {/* Name + description */}
+                  <p className="font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                    {forum.name}
+                  </p>
                   {forum.description && (
-                    <p className="text-sm text-muted-foreground truncate">{forum.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                      {forum.description}
+                    </p>
                   )}
-                </div>
 
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+                  {/* Bottom accent line */}
+                  <div
+                    className="mt-auto pt-3 border-t border-border/50 flex items-center gap-1.5"
+                  >
+                    <div
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: forum.color ?? 'var(--primary)' }}
+                    />
+                    <span className="text-xs text-muted-foreground">View posts</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
