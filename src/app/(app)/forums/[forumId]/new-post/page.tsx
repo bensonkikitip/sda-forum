@@ -1,0 +1,175 @@
+'use client'
+
+import { useState, useMemo } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ChevronLeft, ImagePlus, Loader2, X } from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
+import { MAX_POST_IMAGE_BYTES, ALLOWED_IMAGE_TYPES } from '@/lib/constants'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+
+export default function NewPostPage() {
+  const params = useParams()
+  const forumId = params.forumId as string
+  const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
+
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [images, setImages] = useState<File[]>([])
+  const [saving, setSaving] = useState(false)
+
+  function handleImageAdd(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    const valid = files.filter(f => {
+      if (!ALLOWED_IMAGE_TYPES.includes(f.type)) { toast.error(`${f.name}: unsupported file type`); return false }
+      if (f.size > MAX_POST_IMAGE_BYTES) { toast.error(`${f.name}: exceeds 5 MB limit`); return false }
+      return true
+    })
+    setImages(prev => [...prev, ...valid].slice(0, 5))
+    e.target.value = ''
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!title.trim()) return
+    setSaving(true)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
+
+    // Create the post
+    const { data: post, error: postError } = await supabase
+      .from('posts')
+      .insert({ forum_id: forumId, author_id: user.id, title: title.trim(), body_md: body.trim() })
+      .select('id')
+      .single()
+
+    if (postError || !post) {
+      toast.error(postError?.message ?? 'Failed to create post')
+      setSaving(false)
+      return
+    }
+
+    // Upload images
+    for (let i = 0; i < images.length; i++) {
+      const file = images[i]
+      const ext = file.name.split('.').pop()
+      const path = `${post.id}/${i}.${ext}`
+      const { error: uploadErr } = await supabase.storage.from('post-images').upload(path, file)
+      if (uploadErr) { toast.error(`Image upload failed: ${uploadErr.message}`); continue }
+      await supabase.from('post_images').insert({ post_id: post.id, storage_path: path, position: i })
+    }
+
+    toast.success('Post created!')
+    router.push(`/posts/${post.id}`)
+    router.refresh()
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+      <Link href={`/forums/${forumId}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <ChevronLeft className="h-4 w-4" /> Back to forum
+      </Link>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>New post</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="What's on your mind?"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Body</Label>
+              <Tabs defaultValue="write">
+                <TabsList className="mb-2">
+                  <TabsTrigger value="write">Write</TabsTrigger>
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                </TabsList>
+                <TabsContent value="write">
+                  <Textarea
+                    value={body}
+                    onChange={e => setBody(e.target.value)}
+                    placeholder="Write your post here… Markdown is supported."
+                    rows={10}
+                    className="font-mono text-sm resize-y"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supports **bold**, *italic*, [links](url), and more.
+                  </p>
+                </TabsContent>
+                <TabsContent value="preview">
+                  <div className="min-h-[200px] rounded-md border p-4 prose prose-sm max-w-none dark:prose-invert">
+                    {body ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+                    ) : (
+                      <p className="text-muted-foreground italic">Nothing to preview yet.</p>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Image upload */}
+            <div className="space-y-2">
+              <Label>Images (up to 5)</Label>
+              <div className="flex flex-wrap gap-2">
+                {images.map((img, i) => (
+                  <div key={i} className="relative group">
+                    <img
+                      src={URL.createObjectURL(img)}
+                      alt={img.name}
+                      className="h-20 w-20 object-cover rounded-md border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
+                      className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {images.length < 5 && (
+                  <label className="h-20 w-20 border-2 border-dashed rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-foreground/40 transition-colors text-muted-foreground hover:text-foreground">
+                    <ImagePlus className="h-5 w-5" />
+                    <span className="text-[10px] mt-1">Add image</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      multiple
+                      className="hidden"
+                      onChange={handleImageAdd}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <Button type="submit" disabled={saving || !title.trim()}>
+              {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Publishing…</> : 'Publish post'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

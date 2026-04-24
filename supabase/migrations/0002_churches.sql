@@ -1,0 +1,2 @@
+-- PLACEHOLDER — superseded by 01_tables.sql in the root migrations folder
+-- Do not run this file.
