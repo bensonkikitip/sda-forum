@@ -58,9 +58,11 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
           </div>
           <div className="flex items-center gap-2">
             <SubscribeButton forumId={forumId} isSubscribed={isSubscribed} />
-            <Link href={`/forums/${forumId}/new-post`} className={cn(buttonVariants({ size: 'sm' }), 'gap-1')}>
-              <Plus className="h-4 w-4" /> New post
-            </Link>
+            {(role === 'admin' || role === 'moderator') && (
+              <Link href={`/forums/${forumId}/new-post`} className={cn(buttonVariants({ size: 'sm' }), 'gap-1')}>
+                <Plus className="h-4 w-4" /> New post
+              </Link>
+            )}
           </div>
         </div>
       </div>
