@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Bell, Inbox } from 'lucide-react'
+import { MessageSquare, Bell, Inbox, Rss } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 
@@ -130,8 +130,11 @@ export default function InboxPage() {
                   key={msg.id}
                   className={`p-4 rounded-lg border transition-colors ${!msg.read_at ? 'bg-primary/5 border-primary/20' : 'bg-background'}`}
                 >
-                  {msg.title && <p className="font-medium text-sm">{msg.title}</p>}
-                  {msg.body && <p className="text-sm text-muted-foreground mt-1">{msg.body}</p>}
+                  <div className="flex items-center gap-2 mb-1">
+                    {msg.kind === 'forum_post' && <Rss className="h-3.5 w-3.5 text-primary shrink-0" />}
+                    {msg.title && <p className="font-medium text-sm">{msg.title}</p>}
+                  </div>
+                  {msg.body && <p className="text-sm text-muted-foreground">{msg.body}</p>}
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}

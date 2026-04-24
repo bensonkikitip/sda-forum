@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireUser, getUserRole } from '@/lib/auth'
 import { getForumById } from '@/lib/queries/forums'
 import { getPostsForForum } from '@/lib/queries/posts'
+import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
@@ -10,17 +11,28 @@ import { Card, CardContent } from '@/components/ui/card'
 import { MessageSquare, Pin, Lock, Plus, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
+import { SubscribeButton } from '@/components/subscribe-button'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ForumPage({ params }: { params: Promise<{ forumId: string }> }) {
   const { forumId } = await params
   const user = await requireUser()
-  const [forum, posts, role] = await Promise.all([
+  const supabase = await createClient()
+
+  const [forum, posts, role, subResult] = await Promise.all([
     getForumById(forumId),
     getPostsForForum(forumId, 'newest'),
     getUserRole(user.id),
+    supabase
+      .from('forum_subscriptions')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .eq('forum_id', forumId)
+      .maybeSingle(),
   ])
+
+  const isSubscribed = !!subResult.data
 
   if (!forum) notFound()
 
@@ -44,9 +56,12 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
               {forum.description && <p className="text-sm text-muted-foreground">{forum.description}</p>}
             </div>
           </div>
-          <Link href={`/forums/${forumId}/new-post`} className={cn(buttonVariants({ size: 'sm' }), 'gap-1')}>
-            <Plus className="h-4 w-4" /> New post
-          </Link>
+          <div className="flex items-center gap-2">
+            <SubscribeButton forumId={forumId} isSubscribed={isSubscribed} />
+            <Link href={`/forums/${forumId}/new-post`} className={cn(buttonVariants({ size: 'sm' }), 'gap-1')}>
+              <Plus className="h-4 w-4" /> New post
+            </Link>
+          </div>
         </div>
       </div>
 
