@@ -90,6 +90,30 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
           {/* Title */}
           <h1 className="text-2xl font-bold leading-snug">{post.title}</h1>
 
+          {/* Topic badges */}
+          {post.post_topics && (post.post_topics as unknown[]).length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {(post.post_topics as unknown as { topic_id: string; topics: { id: string; name: string; icon: string | null; color: string | null } | null }[]).map(pt => {
+                const t = pt.topics
+                if (!t) return null
+                return (
+                  <span
+                    key={pt.topic_id}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                    style={{
+                      backgroundColor: t.color ? `${t.color}20` : 'var(--muted)',
+                      color: t.color ?? undefined,
+                      border: `1px solid ${t.color ?? 'transparent'}`,
+                    }}
+                  >
+                    {t.icon && <span>{t.icon}</span>}
+                    {t.name}
+                  </span>
+                )
+              })}
+            </div>
+          )}
+
           {/* Author + date */}
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">

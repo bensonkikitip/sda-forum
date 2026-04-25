@@ -122,9 +122,28 @@ export async function getGroupedPostsForForum(forumId: string) {
 
   const allAuthorIds = [...active, ...past].map(p => p.author_id)
   const profileMap = await fetchAuthorMap(supabase, allAuthorIds)
-  const attach = <T extends { author_id: string }>(p: T) => ({
+
+  // Fetch topics for every post in one query
+  const allPostIds = [...active, ...past].map(p => p.id)
+  // Supabase returns joined rows as arrays in its generated types; cast via unknown.
+  type TopicData = { id: string; name: string; icon: string | null; color: string | null }
+  type TopicRow = { post_id: string; topic_id: string; topics: TopicData | null }
+  let topicsByPost: Record<string, TopicRow[]> = {}
+  if (allPostIds.length > 0) {
+    const { data: ptRows } = await supabase
+      .from('post_topics')
+      .select('post_id, topic_id, topics(id, name, icon, color)')
+      .in('post_id', allPostIds)
+    for (const row of (ptRows ?? []) as unknown as TopicRow[]) {
+      if (!topicsByPost[row.post_id]) topicsByPost[row.post_id] = []
+      topicsByPost[row.post_id].push(row)
+    }
+  }
+
+  const attach = <T extends { author_id: string; id: string }>(p: T) => ({
     ...p,
     author: profileMap[p.author_id] ?? null,
+    post_topics: topicsByPost[p.id] ?? [],
   })
 
   return {
@@ -140,7 +159,8 @@ export async function getPostById(postId: string) {
     .select(`
       id, title, body_md, is_pinned, is_locked, is_removed, comment_count, created_at, forum_id, author_id,
       event_starts_at, event_ends_at, event_location, event_location_url,
-      post_images(id, storage_path, position)
+      post_images(id, storage_path, position),
+      post_topics(topic_id, topics(id, name, icon, color))
     `)
     .eq('id', postId)
     .single()
