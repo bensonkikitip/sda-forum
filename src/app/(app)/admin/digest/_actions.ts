@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { canModerateForumId, getUserRole } from '@/lib/auth'
+import { eventIdsEqual } from '@/lib/digest/event-ids'
 
 // How far ahead to include events in a digest
 const WINDOW_DAYS = 90
@@ -216,12 +217,9 @@ export async function sendDigest(
   }
 
   const { data: currentEvents } = await eventsQuery
-  const currentEventIds = (currentEvents ?? [])
-    .map((e: { id: string }) => e.id)
-    .sort() as string[]
-  const sortedExpected = [...expectedEventIds].sort()
+  const currentEventIds = (currentEvents ?? []).map((e: { id: string }) => e.id)
 
-  if (JSON.stringify(currentEventIds) !== JSON.stringify(sortedExpected)) {
+  if (!eventIdsEqual(currentEventIds, expectedEventIds)) {
     return { ok: false, error: 'Content changed since preview — please preview again' }
   }
 

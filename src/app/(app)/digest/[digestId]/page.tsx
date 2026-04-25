@@ -5,7 +5,8 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Bell, Calendar, CalendarDays, ChevronLeft, MapPin } from 'lucide-react'
-import { format, startOfWeek, addDays } from 'date-fns'
+import { format } from 'date-fns'
+import { groupEventsByWeek } from '@/lib/utils/dates'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,19 +21,6 @@ type DigestEvent = {
   event_location_url: string | null
   forum_id: string
   topics: TopicRow[]
-}
-
-function groupByWeek(events: DigestEvent[]) {
-  const buckets: Map<string, DigestEvent[]> = new Map()
-  for (const event of events) {
-    const date   = new Date(event.event_starts_at)
-    const monday = startOfWeek(date, { weekStartsOn: 1 })
-    const sunday = addDays(monday, 6)
-    const key    = `${format(monday, 'MMM d')} – ${format(sunday, 'MMM d, yyyy')}`
-    if (!buckets.has(key)) buckets.set(key, [])
-    buckets.get(key)!.push(event)
-  }
-  return Array.from(buckets.entries()).map(([label, items]) => ({ label, items }))
 }
 
 export default async function DigestPage({
@@ -117,7 +105,7 @@ export default async function DigestPage({
     ? 'Upcoming events — next 90 days'
     : `${forumName} — upcoming events`
 
-  const grouped = groupByWeek(events)
+  const grouped = groupEventsByWeek(events)
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">

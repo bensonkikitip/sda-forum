@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 import { createAdminClient } from '@/lib/supabase/server'
+import { parsePostIdFromLink } from '@/lib/utils/notification-link'
 
 // Maps inbox_messages.kind to the profile column that gates email.
 // 'forum_post' is handled separately (requires per-topic check).
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
 
   if (kind === 'forum_post') {
     // Parse post id from link "/posts/<uuid>"
-    const postId = link.split('/posts/')[1]?.split('/')[0]
+    const postId = parsePostIdFromLink(link)
 
     if (postId) {
       const { data: ptRows } = await admin

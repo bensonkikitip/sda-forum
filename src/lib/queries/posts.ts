@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { startOfTodayPacific } from '@/lib/utils/dates'
 
 export type SortOrder = 'newest' | 'top'
 
 type AuthorRow = { id: string; display_name: string; avatar_url: string | null }
 
-async function fetchAuthorMap(supabase: Awaited<ReturnType<typeof createClient>>, authorIds: string[]) {
+export async function fetchAuthorMap(supabase: Awaited<ReturnType<typeof createClient>>, authorIds: string[]) {
   if (authorIds.length === 0) return {}
   const unique = [...new Set(authorIds)]
   const { data } = await supabase
@@ -36,43 +37,6 @@ export async function getPostsForForum(forumId: string, sort: SortOrder = 'newes
 
   const profileMap = await fetchAuthorMap(supabase, posts.map(p => p.author_id))
   return posts.map(p => ({ ...p, author: profileMap[p.author_id] ?? null }))
-}
-
-/**
- * Returns the UTC instant that corresponds to midnight on the current calendar
- * day in Pacific time (America/Los_Angeles), automatically accounting for
- * whether PDT (UTC-7) or PST (UTC-8) is in effect.
- *
- * An event whose event_starts_at is on or after this instant is considered
- * "active" (still today or future); one before it is "past".
- */
-function startOfTodayPacific(): Date {
-  const now = new Date()
-
-  // Today's date string in Pacific time, e.g. "2026-04-24"
-  const todayPT = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Los_Angeles',
-  }).format(now)
-
-  const [y, m, d] = todayPT.split('-').map(Number)
-
-  // Pacific is UTC-7 (PDT) or UTC-8 (PST).
-  // Try both candidate UTC hours (7 and 8) and use the one where
-  // the Pacific clock reads 00:00.
-  for (const utcH of [7, 8]) {
-    const candidate = new Date(Date.UTC(y, m - 1, d, utcH, 0, 0, 0))
-    const ptHour = Number(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Los_Angeles',
-        hour: 'numeric',
-        hour12: false,
-      }).format(candidate)
-    )
-    if (ptHour === 0) return candidate
-  }
-
-  // Fallback: PST (should never be reached for Pacific time)
-  return new Date(Date.UTC(y, m - 1, d, 8, 0, 0, 0))
 }
 
 /**
@@ -128,7 +92,7 @@ export async function getGroupedPostsForForum(forumId: string) {
   // Supabase returns joined rows as arrays in its generated types; cast via unknown.
   type TopicData = { id: string; name: string; icon: string | null; color: string | null }
   type TopicRow = { post_id: string; topic_id: string; topics: TopicData | null }
-  let topicsByPost: Record<string, TopicRow[]> = {}
+  const topicsByPost: Record<string, TopicRow[]> = {}
   if (allPostIds.length > 0) {
     const { data: ptRows } = await supabase
       .from('post_topics')

@@ -9,23 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, Calendar, ChevronLeft, MapPin, Users } from 'lucide-react'
-import { format, startOfWeek, addDays } from 'date-fns'
+import { format } from 'date-fns'
+import { groupEventsByWeek } from '@/lib/utils/dates'
 
 export const dynamic = 'force-dynamic'
-
-// Group events into buckets by the Monday of their week
-function groupByWeek(events: { event_starts_at: string }[]) {
-  const buckets: Map<string, typeof events> = new Map()
-  for (const event of events) {
-    const date   = new Date(event.event_starts_at)
-    const monday = startOfWeek(date, { weekStartsOn: 1 })
-    const sunday = addDays(monday, 6)
-    const key    = `${format(monday, 'MMM d')} – ${format(sunday, 'MMM d, yyyy')}`
-    if (!buckets.has(key)) buckets.set(key, [])
-    buckets.get(key)!.push(event)
-  }
-  return Array.from(buckets.entries()).map(([label, items]) => ({ label, items }))
-}
 
 export default async function DigestPreviewPage({
   searchParams,
@@ -131,7 +118,7 @@ export default async function DigestPreviewPage({
                 {preview.events.length} upcoming event{preview.events.length !== 1 ? 's' : ''} — next 90 days
               </h2>
 
-              {groupByWeek(preview.events).map(({ label, items }) => (
+              {groupEventsByWeek(preview.events).map(({ label, items }) => (
                 <div key={label} className="space-y-2">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {label}
