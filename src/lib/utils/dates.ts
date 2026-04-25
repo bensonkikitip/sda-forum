@@ -8,8 +8,7 @@ import { startOfWeek, addDays, format } from 'date-fns'
  * An event whose event_starts_at is on or after this instant is considered
  * "active" (still today or future); one before it is "past".
  */
-export function startOfTodayPacific(): Date {
-  const now = new Date()
+export function startOfTodayPacific(now: Date = new Date()): Date {
 
   // Today's date string in Pacific time, e.g. "2026-04-24"
   const todayPT = new Intl.DateTimeFormat('en-CA', {

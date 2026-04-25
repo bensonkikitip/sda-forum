@@ -1,34 +1,23 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { startOfTodayPacific, groupEventsByWeek } from './dates'
 
 // ── startOfTodayPacific ────────────────────────────────────────────────────
 
 describe('startOfTodayPacific', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
   it('returns midnight Pacific time during PDT (UTC-7)', () => {
     // April 24, 2026 is in PDT — midnight Pacific = 07:00 UTC
-    vi.setSystemTime(new Date('2026-04-24T15:00:00Z')) // any time that day
-    const result = startOfTodayPacific()
+    const result = startOfTodayPacific(new Date('2026-04-24T15:00:00Z'))
     expect(result.toISOString()).toBe('2026-04-24T07:00:00.000Z')
   })
 
   it('returns midnight Pacific time during PST (UTC-8)', () => {
     // January 15, 2026 is in PST — midnight Pacific = 08:00 UTC
-    vi.setSystemTime(new Date('2026-01-15T15:00:00Z'))
-    const result = startOfTodayPacific()
+    const result = startOfTodayPacific(new Date('2026-01-15T15:00:00Z'))
     expect(result.toISOString()).toBe('2026-01-15T08:00:00.000Z')
   })
 
   it('returns a Date whose Pacific-time hour is 0', () => {
-    // Verify the returned instant actually reads as midnight in Pacific time
-    vi.setSystemTime(new Date('2026-06-10T20:00:00Z'))
-    const result = startOfTodayPacific()
+    const result = startOfTodayPacific(new Date('2026-06-10T20:00:00Z'))
     const ptHour = Number(
       new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Los_Angeles',
@@ -41,8 +30,7 @@ describe('startOfTodayPacific', () => {
 
   it('handles the spring-forward DST transition day correctly (Mar 8, 2026)', () => {
     // On DST transition day clocks spring forward at 2am — midnight is still valid
-    vi.setSystemTime(new Date('2026-03-08T18:00:00Z'))
-    const result = startOfTodayPacific()
+    const result = startOfTodayPacific(new Date('2026-03-08T18:00:00Z'))
     const ptHour = Number(
       new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Los_Angeles',
@@ -55,8 +43,7 @@ describe('startOfTodayPacific', () => {
 
   it('handles the fall-back DST transition day correctly (Nov 1, 2026)', () => {
     // On this day clocks fall back — midnight is still valid
-    vi.setSystemTime(new Date('2026-11-01T18:00:00Z'))
-    const result = startOfTodayPacific()
+    const result = startOfTodayPacific(new Date('2026-11-01T18:00:00Z'))
     const ptHour = Number(
       new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Los_Angeles',
