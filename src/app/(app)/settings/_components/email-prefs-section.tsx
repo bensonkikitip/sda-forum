@@ -13,6 +13,7 @@ type EmailPrefs = {
   email_notify_replies: boolean
   email_notify_mentions: boolean
   email_notify_announcements: boolean
+  email_notify_digest: boolean
 }
 
 const TOGGLES: { key: keyof EmailPrefs; label: string; description: string }[] = [
@@ -35,6 +36,11 @@ const TOGGLES: { key: keyof EmailPrefs; label: string; description: string }[] =
     key: 'email_notify_announcements',
     label: 'Email: admin announcements',
     description: 'When administrators post a site-wide announcement.',
+  },
+  {
+    key: 'email_notify_digest',
+    label: 'Email: quarterly digest',
+    description: 'Receive an email when admins send a digest of upcoming events.',
   },
 ]
 

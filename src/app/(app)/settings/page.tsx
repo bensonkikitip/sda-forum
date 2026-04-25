@@ -43,7 +43,7 @@ export default async function SettingsPage() {
       .eq('user_id', user.id),
     supabase
       .from('profiles')
-      .select('dm_opt_in, email_notify_replies, email_notify_mentions, email_notify_announcements')
+      .select('dm_opt_in, email_notify_replies, email_notify_mentions, email_notify_announcements, email_notify_digest')
       .eq('id', user.id)
       .maybeSingle(),
   ])
@@ -90,6 +90,7 @@ export default async function SettingsPage() {
           email_notify_replies:       profile.email_notify_replies       ?? false,
           email_notify_mentions:      profile.email_notify_mentions      ?? false,
           email_notify_announcements: profile.email_notify_announcements ?? false,
+          email_notify_digest:        (profile as Record<string, unknown>).email_notify_digest as boolean ?? false,
         }}
       />
 
