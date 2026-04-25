@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { requireUser, getUserRole } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/server'
 import { AdminNav } from '@/components/admin-nav'
@@ -15,10 +16,7 @@ export default async function AdminDigestPage() {
   const role = await getUserRole(user.id)
 
   // Only admins and moderators can reach this page
-  if (role !== 'admin' && role !== 'moderator') {
-    const { redirect } = await import('next/navigation')
-    redirect('/home')
-  }
+  if (role !== 'admin' && role !== 'moderator') redirect('/home')
 
   const admin = createAdminClient()
 

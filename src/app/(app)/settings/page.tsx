@@ -53,6 +53,16 @@ export default async function SettingsPage() {
   const topics = topicsRes.data ?? []
   const forums = forumsRes.data ?? []
 
+  // Explicit type so TS knows about email_notify_digest (added in migration 18)
+  type ProfileRow = {
+    dm_opt_in: boolean | null
+    email_notify_replies: boolean | null
+    email_notify_mentions: boolean | null
+    email_notify_announcements: boolean | null
+    email_notify_digest: boolean | null
+  }
+  const profile = profileRes.data as unknown as ProfileRow
+
   const topicPrefsMap: Record<string, { notify_inapp: boolean; notify_email: boolean }> = {}
   for (const row of topicPrefsRes.data ?? []) {
     topicPrefsMap[row.topic_id] = {
@@ -62,7 +72,6 @@ export default async function SettingsPage() {
   }
 
   const subscribedForumIds = (subRes.data ?? []).map(r => r.forum_id)
-  const profile = profileRes.data
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
@@ -90,7 +99,7 @@ export default async function SettingsPage() {
           email_notify_replies:       profile.email_notify_replies       ?? false,
           email_notify_mentions:      profile.email_notify_mentions      ?? false,
           email_notify_announcements: profile.email_notify_announcements ?? false,
-          email_notify_digest:        (profile as Record<string, unknown>).email_notify_digest as boolean ?? false,
+          email_notify_digest:        profile.email_notify_digest        ?? false,
         }}
       />
 
