@@ -8,6 +8,7 @@ const KIND_TO_PREF: Record<string, string> = {
   reply:        'email_notify_replies',
   mention:      'email_notify_mentions',
   announcement: 'email_notify_announcements',
+  digest:       'email_notify_digest',
 }
 
 let transporter: nodemailer.Transporter | null = null
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     .from('profiles')
     .select(
       'is_banned, email_notify_replies, email_notify_mentions, ' +
-      'email_notify_announcements, email_notify_forum_subs'
+      'email_notify_announcements, email_notify_forum_subs, email_notify_digest'
     )
     .eq('id', recipientId)
     .maybeSingle() as {
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
         email_notify_mentions: boolean
         email_notify_announcements: boolean
         email_notify_forum_subs: boolean
+        email_notify_digest: boolean
       } | null
     }
 
