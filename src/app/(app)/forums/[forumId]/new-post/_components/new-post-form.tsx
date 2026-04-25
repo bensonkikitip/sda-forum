@@ -84,53 +84,39 @@ export function NewPostForm({ forumId, topics }: Props) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const payload: Record<string, unknown> = {
-      forum_id: forumId,
-      author_id: user.id,
-      title: title.trim(),
-      body_md: body.trim(),
-    }
+    // Single RPC call: inserts post + topics + fans out notifications atomically.
+    const { data: newPostId, error: rpcError } = await supabase.rpc(
+      'create_post_with_topics',
+      {
+        p_forum_id:           forumId,
+        p_title:              title.trim(),
+        p_body_md:            body.trim(),
+        p_event_starts_at:    isEvent && eventStart ? new Date(eventStart).toISOString() : null,
+        p_event_ends_at:      isEvent && eventEnd   ? new Date(eventEnd).toISOString()   : null,
+        p_event_location:     isEvent ? eventLocation.trim() || null : null,
+        p_event_location_url: isEvent ? eventLocationUrl.trim() || null : null,
+        p_topic_ids:          selectedTopicIds.size > 0 ? [...selectedTopicIds] : null,
+      }
+    )
 
-    if (isEvent) {
-      payload.event_starts_at    = new Date(eventStart).toISOString()
-      payload.event_ends_at      = eventEnd ? new Date(eventEnd).toISOString() : null
-      payload.event_location     = eventLocation.trim() || null
-      payload.event_location_url = eventLocationUrl.trim() || null
-    }
-
-    const { data: post, error: postError } = await supabase
-      .from('posts')
-      .insert(payload)
-      .select('id')
-      .single()
-
-    if (postError || !post) {
-      toast.error(postError?.message ?? 'Failed to create post')
+    if (rpcError || !newPostId) {
+      toast.error(rpcError?.message ?? 'Failed to create post')
       setSaving(false)
       return
     }
 
-    // Tag topics
-    const topicIds = [...selectedTopicIds]
-    if (topicIds.length > 0) {
-      const { error: topicErr } = await supabase
-        .from('post_topics')
-        .insert(topicIds.map(topic_id => ({ post_id: post.id, topic_id })))
-      if (topicErr) toast.error(`Topic tagging failed: ${topicErr.message}`)
-    }
-
-    // Upload images
+    // Upload images (still done client-side after the post is created)
     for (let i = 0; i < images.length; i++) {
       const file = images[i]
       const ext = file.name.split('.').pop()
-      const path = `${post.id}/${i}.${ext}`
+      const path = `${newPostId}/${i}.${ext}`
       const { error: uploadErr } = await supabase.storage.from('post-images').upload(path, file)
       if (uploadErr) { toast.error(`Image upload failed: ${uploadErr.message}`); continue }
-      await supabase.from('post_images').insert({ post_id: post.id, storage_path: path, position: i })
+      await supabase.from('post_images').insert({ post_id: newPostId, storage_path: path, position: i })
     }
 
     toast.success('Post created!')
-    router.push(`/posts/${post.id}`)
+    router.push(`/posts/${newPostId}`)
     router.refresh()
   }
 
