@@ -125,6 +125,11 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
 // PostSection — shared renderer for both active and past buckets
 // ---------------------------------------------------------------------------
 
+type TopicEntry = {
+  topic_id: string
+  topics: { id: string; name: string; icon: string | null; color: string | null } | null
+}
+
 type Post = {
   id: string
   title: string
@@ -134,6 +139,7 @@ type Post = {
   created_at: string
   event_starts_at: string | null
   event_location: string | null
+  post_topics: TopicEntry[]
   author: { id: string; display_name: string; avatar_url: string | null } | null
 }
 
@@ -171,6 +177,30 @@ function PostSection({ posts, muted = false }: { posts: Post[]; muted?: boolean 
                     {post.title}
                   </p>
                 </div>
+
+                {/* Topic badges */}
+                {post.post_topics.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {post.post_topics.map(pt => {
+                      const t = pt.topics
+                      if (!t) return null
+                      return (
+                        <span
+                          key={pt.topic_id}
+                          className="inline-flex items-center gap-1 px-2 py-0 rounded-full text-[10px] font-medium"
+                          style={{
+                            backgroundColor: t.color ? `${t.color}18` : undefined,
+                            color: t.color ?? undefined,
+                            border: `1px solid ${t.color ? `${t.color}50` : 'transparent'}`,
+                          }}
+                        >
+                          {t.icon && <span>{t.icon}</span>}
+                          {t.name}
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
 
                 {/* Event date + location pill */}
                 {isEvent && post.event_starts_at && (
