@@ -11,6 +11,7 @@ import { CommentComposer } from '@/components/comment-composer'
 import { ReportButton } from '@/components/report-button'
 import { BlurredContent } from '@/components/blurred-content'
 import { ModActions } from '@/components/mod-actions'
+import { EventCard } from '@/components/event-card'
 import { ChevronLeft, Pin, Lock, MessageSquare } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import ReactMarkdown from 'react-markdown'
@@ -126,6 +127,17 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
               isPinned={post.is_pinned}
               isLocked={post.is_locked}
               isRemoved={post.is_removed}
+            />
+          )}
+
+          {/* Event card — only rendered when event_starts_at is set */}
+          {post.event_starts_at && (
+            <EventCard
+              title={post.title}
+              startsAt={post.event_starts_at}
+              endsAt={post.event_ends_at}
+              location={post.event_location}
+              locationUrl={post.event_location_url}
             />
           )}
 

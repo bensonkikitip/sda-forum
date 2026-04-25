@@ -38,12 +38,108 @@ export async function getPostsForForum(forumId: string, sort: SortOrder = 'newes
   return posts.map(p => ({ ...p, author: profileMap[p.author_id] ?? null }))
 }
 
+/**
+ * Returns the UTC instant that corresponds to midnight on the current calendar
+ * day in Pacific time (America/Los_Angeles), automatically accounting for
+ * whether PDT (UTC-7) or PST (UTC-8) is in effect.
+ *
+ * An event whose event_starts_at is on or after this instant is considered
+ * "active" (still today or future); one before it is "past".
+ */
+function startOfTodayPacific(): Date {
+  const now = new Date()
+
+  // Today's date string in Pacific time, e.g. "2026-04-24"
+  const todayPT = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Los_Angeles',
+  }).format(now)
+
+  const [y, m, d] = todayPT.split('-').map(Number)
+
+  // Pacific is UTC-7 (PDT) or UTC-8 (PST).
+  // Try both candidate UTC hours (7 and 8) and use the one where
+  // the Pacific clock reads 00:00.
+  for (const utcH of [7, 8]) {
+    const candidate = new Date(Date.UTC(y, m - 1, d, utcH, 0, 0, 0))
+    const ptHour = Number(
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        hour: 'numeric',
+        hour12: false,
+      }).format(candidate)
+    )
+    if (ptHour === 0) return candidate
+  }
+
+  // Fallback: PST (should never be reached for Pacific time)
+  return new Date(Date.UTC(y, m - 1, d, 8, 0, 0, 0))
+}
+
+/**
+ * Return a forum's posts split into two buckets:
+ *
+ *   - active: all non-event posts + event posts whose date is today or later
+ *             (in Pacific time). An event on today's date stays active for the
+ *             whole calendar day regardless of what time it starts.
+ *             Sorted: pinned first, then by created_at descending.
+ *
+ *   - past:   event posts whose calendar date has already passed in Pacific time.
+ *             Sorted: pinned first, then by event_starts_at descending (most recent first).
+ */
+export async function getGroupedPostsForForum(forumId: string) {
+  const supabase = await createClient()
+
+  const startOfTodayIso = startOfTodayPacific().toISOString()
+
+  const baseCols =
+    'id, title, body_md, is_pinned, is_locked, comment_count, created_at, author_id, event_starts_at, event_location'
+
+  const [activeRes, pastRes] = await Promise.all([
+    // Active: non-event posts OR events starting today or later
+    supabase
+      .from('posts')
+      .select(baseCols)
+      .eq('forum_id', forumId)
+      .eq('is_removed', false)
+      .or(`event_starts_at.is.null,event_starts_at.gte.${startOfTodayIso}`)
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(50),
+    // Past: events whose date has already passed
+    supabase
+      .from('posts')
+      .select(baseCols)
+      .eq('forum_id', forumId)
+      .eq('is_removed', false)
+      .lt('event_starts_at', startOfTodayIso)
+      .order('is_pinned', { ascending: false })
+      .order('event_starts_at', { ascending: false })
+      .limit(50),
+  ])
+
+  const active = activeRes.data ?? []
+  const past   = pastRes.data ?? []
+
+  const allAuthorIds = [...active, ...past].map(p => p.author_id)
+  const profileMap = await fetchAuthorMap(supabase, allAuthorIds)
+  const attach = <T extends { author_id: string }>(p: T) => ({
+    ...p,
+    author: profileMap[p.author_id] ?? null,
+  })
+
+  return {
+    active: active.map(attach),
+    past:   past.map(attach),
+  }
+}
+
 export async function getPostById(postId: string) {
   const supabase = await createClient()
   const { data: post } = await supabase
     .from('posts')
     .select(`
       id, title, body_md, is_pinned, is_locked, is_removed, comment_count, created_at, forum_id, author_id,
+      event_starts_at, event_ends_at, event_location, event_location_url,
       post_images(id, storage_path, position)
     `)
     .eq('id', postId)

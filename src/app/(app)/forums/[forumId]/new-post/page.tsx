@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChevronLeft, ImagePlus, Loader2, X } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { ChevronLeft, ImagePlus, Loader2, X, CalendarDays } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { MAX_POST_IMAGE_BYTES, ALLOWED_IMAGE_TYPES } from '@/lib/constants'
@@ -27,6 +28,13 @@ export default function NewPostPage() {
   const [images, setImages] = useState<File[]>([])
   const [saving, setSaving] = useState(false)
 
+  // Event fields — all optional. isEvent=true requires eventStart at minimum.
+  const [isEvent, setIsEvent] = useState(false)
+  const [eventStart, setEventStart] = useState('')      // datetime-local string
+  const [eventEnd, setEventEnd] = useState('')          // datetime-local string
+  const [eventLocation, setEventLocation] = useState('')
+  const [eventLocationUrl, setEventLocationUrl] = useState('')
+
   function handleImageAdd(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     const valid = files.filter(f => {
@@ -41,15 +49,53 @@ export default function NewPostPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
+
+    // If event toggle is on, a start time is required.
+    if (isEvent && !eventStart) {
+      toast.error('Please provide an event start date/time')
+      return
+    }
+    // Sanity check: if end is provided, it must be after start.
+    if (isEvent && eventEnd && eventStart && new Date(eventEnd) <= new Date(eventStart)) {
+      toast.error('Event end time must be after the start time')
+      return
+    }
+
     setSaving(true)
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
+    // Build the insert payload. `datetime-local` gives a naive string like
+    // "2026-05-12T19:00" — `new Date(...)` interprets it in the browser's
+    // local timezone and `.toISOString()` converts to UTC for Postgres.
+    const payload: {
+      forum_id: string
+      author_id: string
+      title: string
+      body_md: string
+      event_starts_at?: string | null
+      event_ends_at?: string | null
+      event_location?: string | null
+      event_location_url?: string | null
+    } = {
+      forum_id: forumId,
+      author_id: user.id,
+      title: title.trim(),
+      body_md: body.trim(),
+    }
+
+    if (isEvent) {
+      payload.event_starts_at    = new Date(eventStart).toISOString()
+      payload.event_ends_at      = eventEnd ? new Date(eventEnd).toISOString() : null
+      payload.event_location     = eventLocation.trim() || null
+      payload.event_location_url = eventLocationUrl.trim() || null
+    }
+
     // Create the post
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .insert({ forum_id: forumId, author_id: user.id, title: title.trim(), body_md: body.trim() })
+      .insert(payload)
       .select('id')
       .single()
 
@@ -95,6 +141,71 @@ export default function NewPostPage() {
                 placeholder="What's on your mind?"
                 required
               />
+            </div>
+
+            {/* Event toggle */}
+            <div className="rounded-md border p-4 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-primary" />
+                  <div>
+                    <Label htmlFor="event-toggle" className="cursor-pointer">
+                      This is an event
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Show this post with a date, time, and location.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="event-toggle"
+                  checked={isEvent}
+                  onCheckedChange={setIsEvent}
+                />
+              </div>
+
+              {isEvent && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-start">Starts *</Label>
+                    <Input
+                      id="event-start"
+                      type="datetime-local"
+                      value={eventStart}
+                      onChange={e => setEventStart(e.target.value)}
+                      required={isEvent}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-end">Ends (optional)</Label>
+                    <Input
+                      id="event-end"
+                      type="datetime-local"
+                      value={eventEnd}
+                      onChange={e => setEventEnd(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="event-location">Location (optional)</Label>
+                    <Input
+                      id="event-location"
+                      value={eventLocation}
+                      onChange={e => setEventLocation(e.target.value)}
+                      placeholder="Fellowship Hall, 123 Main St"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="event-location-url">Location link (optional)</Label>
+                    <Input
+                      id="event-location-url"
+                      type="url"
+                      value={eventLocationUrl}
+                      onChange={e => setEventLocationUrl(e.target.value)}
+                      placeholder="https://maps.google.com/…"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
