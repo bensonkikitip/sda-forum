@@ -26,7 +26,7 @@ export function startOfTodayPacific(now: Date = new Date()): Date {
       new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Los_Angeles',
         hour: 'numeric',
-        hour12: false,
+        hourCycle: 'h23',
       }).format(candidate)
     )
     if (ptHour === 0) return candidate

@@ -17,41 +17,21 @@ describe('startOfTodayPacific', () => {
   })
 
   it('returns a Date whose Pacific-time hour is 0', () => {
+    // June 10 is in PDT — midnight Pacific = 07:00 UTC
     const result = startOfTodayPacific(new Date('2026-06-10T20:00:00Z'))
-    const ptHour = Number(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Los_Angeles',
-        hour: 'numeric',
-        hour12: false,
-      }).format(result)
-    )
-    expect(ptHour).toBe(0)
+    expect(result.toISOString()).toBe('2026-06-10T07:00:00.000Z')
   })
 
   it('handles the spring-forward DST transition day correctly (Mar 8, 2026)', () => {
-    // On DST transition day clocks spring forward at 2am — midnight is still valid
+    // Midnight on Mar 8 is still in PST (clocks spring forward at 2am) — midnight = 08:00 UTC
     const result = startOfTodayPacific(new Date('2026-03-08T18:00:00Z'))
-    const ptHour = Number(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Los_Angeles',
-        hour: 'numeric',
-        hour12: false,
-      }).format(result)
-    )
-    expect(ptHour).toBe(0)
+    expect(result.toISOString()).toBe('2026-03-08T08:00:00.000Z')
   })
 
   it('handles the fall-back DST transition day correctly (Nov 1, 2026)', () => {
-    // On this day clocks fall back — midnight is still valid
+    // Midnight on Nov 1 is in PDT (clocks fall back at 2am) — midnight = 07:00 UTC
     const result = startOfTodayPacific(new Date('2026-11-01T18:00:00Z'))
-    const ptHour = Number(
-      new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Los_Angeles',
-        hour: 'numeric',
-        hour12: false,
-      }).format(result)
-    )
-    expect(ptHour).toBe(0)
+    expect(result.toISOString()).toBe('2026-11-01T07:00:00.000Z')
   })
 })
 
