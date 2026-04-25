@@ -1,163 +1,97 @@
-'use client'
-
-import { useState, useEffect, useMemo } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { redirect } from 'next/navigation'
+import { requireUser } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
 import { Separator } from '@/components/ui/separator'
-import { SignOutButton } from '@/components/sign-out-button'
-import { toast } from 'sonner'
-import Link from 'next/link'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
+import { SignOutButton } from '@/components/sign-out-button'
+import { TopicPrefsSection } from './_components/topic-prefs-section'
+import { ForumSubsSection } from './_components/forum-subs-section'
+import { EmailPrefsSection } from './_components/email-prefs-section'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
-type EmailPrefs = {
-  email_notify_replies: boolean
-  email_notify_mentions: boolean
-  email_notify_forum_subs: boolean
-  email_notify_announcements: boolean
-}
+export const dynamic = 'force-dynamic'
 
-const EMAIL_PREF_LABELS: { key: keyof EmailPrefs; label: string; description: string }[] = [
-  {
-    key: 'email_notify_replies',
-    label: 'Replies to my posts',
-    description: 'When someone replies to a post or comment you wrote.',
-  },
-  {
-    key: 'email_notify_mentions',
-    label: 'Mentions',
-    description: 'When someone @mentions you in a post or comment.',
-  },
-  {
-    key: 'email_notify_forum_subs',
-    label: 'New posts in subscribed forums',
-    description: 'When someone posts in a forum you have subscribed to.',
-  },
-  {
-    key: 'email_notify_announcements',
-    label: 'Admin announcements',
-    description: 'When administrators post a site-wide announcement.',
-  },
-]
+export default async function SettingsPage() {
+  const user = await requireUser()
+  const supabase = await createClient()
 
-export default function SettingsPage() {
-  const supabase = useMemo(() => createClient(), [])
-  const [dmOptIn, setDmOptIn] = useState(true)
-  const [emailPrefs, setEmailPrefs] = useState<EmailPrefs>({
-    email_notify_replies: false,
-    email_notify_mentions: false,
-    email_notify_forum_subs: false,
-    email_notify_announcements: false,
-  })
-  const [userId, setUserId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      setUserId(user.id)
-      const { data } = await supabase
-        .from('profiles')
-        .select('dm_opt_in, email_notify_replies, email_notify_mentions, email_notify_forum_subs, email_notify_announcements')
-        .eq('id', user.id)
-        .maybeSingle()
-      if (data) {
-        setDmOptIn(data.dm_opt_in ?? true)
-        setEmailPrefs({
-          email_notify_replies: data.email_notify_replies ?? false,
-          email_notify_mentions: data.email_notify_mentions ?? false,
-          email_notify_forum_subs: data.email_notify_forum_subs ?? false,
-          email_notify_announcements: data.email_notify_announcements ?? false,
-        })
-      }
-      setLoading(false)
-    }
-    load()
-  }, [supabase])
-
-  async function handleDmToggle(checked: boolean) {
-    setDmOptIn(checked)
-    if (!userId) return
-    const { error } = await supabase
+  const [
+    topicsRes,
+    topicPrefsRes,
+    forumsRes,
+    subRes,
+    profileRes,
+  ] = await Promise.all([
+    supabase
+      .from('topics')
+      .select('id, name, icon, color')
+      .order('sort_order')
+      .order('name'),
+    supabase
+      .from('user_topic_preferences')
+      .select('topic_id, notify_inapp, notify_email')
+      .eq('user_id', user.id),
+    supabase
+      .from('forums')
+      .select('id, name, icon, color')
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('forum_subscriptions')
+      .select('forum_id')
+      .eq('user_id', user.id),
+    supabase
       .from('profiles')
-      .update({ dm_opt_in: checked })
-      .eq('id', userId)
-    if (error) {
-      toast.error(error.message)
-      setDmOptIn(!checked)
-    } else {
-      toast.success(checked ? 'Direct messages enabled' : 'Direct messages disabled')
+      .select('dm_opt_in, email_notify_replies, email_notify_mentions, email_notify_announcements')
+      .eq('id', user.id)
+      .maybeSingle(),
+  ])
+
+  if (!profileRes.data) redirect('/login')
+
+  const topics = topicsRes.data ?? []
+  const forums = forumsRes.data ?? []
+
+  const topicPrefsMap: Record<string, { notify_inapp: boolean; notify_email: boolean }> = {}
+  for (const row of topicPrefsRes.data ?? []) {
+    topicPrefsMap[row.topic_id] = {
+      notify_inapp: row.notify_inapp,
+      notify_email: row.notify_email,
     }
   }
 
-  async function handleEmailPrefToggle(key: keyof EmailPrefs, checked: boolean) {
-    const prev = emailPrefs[key]
-    setEmailPrefs(p => ({ ...p, [key]: checked }))
-    if (!userId) return
-    const { error } = await supabase
-      .from('profiles')
-      .update({ [key]: checked })
-      .eq('id', userId)
-    if (error) {
-      toast.error(error.message)
-      setEmailPrefs(p => ({ ...p, [key]: prev }))
-    }
-  }
+  const subscribedForumIds = (subRes.data ?? []).map(r => r.forum_id)
+  const profile = profileRes.data
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold">Settings</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Privacy</CardTitle>
-          <CardDescription>Control who can contact you</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="dm-toggle">Allow direct messages</Label>
-              <p className="text-xs text-muted-foreground">
-                When off, other members cannot start a new DM conversation with you.
-              </p>
-            </div>
-            <Switch
-              id="dm-toggle"
-              checked={dmOptIn}
-              onCheckedChange={handleDmToggle}
-              disabled={loading}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* A: Topic notification preferences */}
+      <TopicPrefsSection
+        userId={user.id}
+        topics={topics}
+        initialPrefs={topicPrefsMap}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Email notifications</CardTitle>
-          <CardDescription>
-            In-app notifications are always on. These switches also send you an email.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {EMAIL_PREF_LABELS.map(({ key, label, description }) => (
-            <div key={key} className="flex items-center justify-between gap-4">
-              <div className="space-y-0.5">
-                <Label htmlFor={key}>{label}</Label>
-                <p className="text-xs text-muted-foreground">{description}</p>
-              </div>
-              <Switch
-                id={key}
-                checked={emailPrefs[key]}
-                onCheckedChange={checked => handleEmailPrefToggle(key, checked)}
-                disabled={loading}
-              />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      {/* B: Forum subscriptions */}
+      <ForumSubsSection
+        userId={user.id}
+        forums={forums}
+        initialSubscribedIds={subscribedForumIds}
+      />
+
+      {/* C: Email + privacy */}
+      <EmailPrefsSection
+        userId={user.id}
+        initialPrefs={{
+          dm_opt_in:                  profile.dm_opt_in                  ?? true,
+          email_notify_replies:       profile.email_notify_replies       ?? false,
+          email_notify_mentions:      profile.email_notify_mentions      ?? false,
+          email_notify_announcements: profile.email_notify_announcements ?? false,
+        }}
+      />
 
       <Card>
         <CardHeader>
