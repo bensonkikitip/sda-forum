@@ -34,6 +34,10 @@ create policy "Admins can update churches"
   on churches for update
   using (is_admin(auth.uid()));
 
+create policy "Admins can delete churches"
+  on churches for delete
+  using (is_admin(auth.uid()));
+
 -- ── profiles ────────────────────────────────────────────────
 -- Users see their own profile and any non-banned profile
 create policy "Users can read non-banned profiles"
