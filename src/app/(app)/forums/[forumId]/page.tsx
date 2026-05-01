@@ -56,15 +56,15 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
             <ChevronLeft className="h-4 w-4" /> All forums
           </Link>
 
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               <div className="h-14 w-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 bg-white/15 backdrop-blur-sm">
                 {forum.icon ?? '💬'}
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white leading-tight">{forum.name}</h1>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold text-white leading-tight break-words">{forum.name}</h1>
                 {forum.description && (
-                  <p className="text-sm text-white/70 mt-0.5">{forum.description}</p>
+                  <p className="text-sm text-white/70 mt-0.5 break-words">{forum.description}</p>
                 )}
               </div>
             </div>

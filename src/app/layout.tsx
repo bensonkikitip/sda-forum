@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
@@ -9,8 +9,21 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'SDA Community Forum',
-  description: 'A community forum for Seventh-day Adventists',
+  title: 'SDA Community',
+  description:
+    'Stay connected with announcements and events from your church and region.',
+  appleWebApp: {
+    capable: true,
+    title: 'SDA Community',
+    statusBarStyle: 'default',
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#1e3a8a',
 }
 
 export default function RootLayout({
