@@ -5,6 +5,7 @@ import { AdminNav } from '@/components/admin-nav'
 import { ForumDetailsEditor } from './_components/forum-details-editor'
 import { ForumGroupManager } from './_components/forum-group-manager'
 import { ForumModeratorManager } from './_components/forum-moderator-manager'
+import { ForumRegionManager } from './_components/forum-region-manager'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -15,20 +16,31 @@ export default async function ForumDetailPage({ params }: { params: Promise<{ fo
   await requireAdmin()
   const admin = createAdminClient()
 
-  const [forumResult, allGroupsResult, forumGroupsResult, modRolesResult, forumModsResult] =
-    await Promise.all([
-      admin.from('forums').select('id, name, description, icon, color, slug').eq('id', forumId).maybeSingle(),
-      admin.from('groups').select('id, name, description').order('name'),
-      admin.from('forum_groups').select('group_id').eq('forum_id', forumId),
-      admin.from('user_roles').select('user_id').eq('role', 'moderator'),
-      admin.from('forum_moderators').select('user_id').eq('forum_id', forumId),
-    ])
+  const [
+    forumResult,
+    allGroupsResult,
+    forumGroupsResult,
+    modRolesResult,
+    forumModsResult,
+    allRegionsResult,
+    forumRegionsResult,
+  ] = await Promise.all([
+    admin.from('forums').select('id, name, description, icon, color, slug').eq('id', forumId).maybeSingle(),
+    admin.from('groups').select('id, name, description').order('name'),
+    admin.from('forum_groups').select('group_id').eq('forum_id', forumId),
+    admin.from('user_roles').select('user_id').eq('role', 'moderator'),
+    admin.from('forum_moderators').select('user_id').eq('forum_id', forumId),
+    admin.from('regions').select('id, name, description').order('name'),
+    admin.from('forum_regions').select('region_id').eq('forum_id', forumId),
+  ])
 
   if (!forumResult.data) notFound()
 
   const forum = forumResult.data
   const allGroups = allGroupsResult.data ?? []
   const enabledGroupIds = (forumGroupsResult.data ?? []).map(r => r.group_id)
+  const allRegions = allRegionsResult.data ?? []
+  const enabledRegionIds = (forumRegionsResult.data ?? []).map(r => r.region_id)
 
   // Fetch profiles for all moderators so we can show names + avatars
   const modUserIds = (modRolesResult.data ?? []).map(r => r.user_id)
@@ -69,6 +81,12 @@ export default async function ForumDetailPage({ params }: { params: Promise<{ fo
         forumId={forumId}
         allMods={allMods}
         enabledModIds={enabledModIds}
+      />
+
+      <ForumRegionManager
+        forumId={forumId}
+        allRegions={allRegions}
+        enabledRegionIds={enabledRegionIds}
       />
 
       <ForumGroupManager
