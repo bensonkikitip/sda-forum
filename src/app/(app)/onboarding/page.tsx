@@ -108,7 +108,7 @@ export default function OnboardingPage() {
               <Label htmlFor="displayName">Display name *</Label>
               <Input
                 id="displayName"
-                placeholder="How you want to appear on the forum"
+                placeholder="How you want to appear in the community"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required

@@ -36,18 +36,18 @@ export default async function AdminForumsPage() {
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Forums</h1>
+          <h1 className="text-2xl font-bold">Groups</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {forums.length} {forums.length === 1 ? 'forum' : 'forums'}
+            {forums.length} {forums.length === 1 ? 'group' : 'groups'}
           </p>
         </div>
         <Link href="/admin/forums/new" className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5')}>
-          <Plus className="h-4 w-4" /> New forum
+          <Plus className="h-4 w-4" /> New group
         </Link>
       </div>
 
       {forums.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No forums yet.</p>
+        <p className="text-sm text-muted-foreground">No groups yet.</p>
       ) : (
         <div className="space-y-2">
           {forums.map(f => {
@@ -79,7 +79,7 @@ export default async function AdminForumsPage() {
                 <Link
                   href={`/admin/forums/${f.id}`}
                   className="shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                  title="Manage forum"
+                  title="Manage group"
                 >
                   <Settings className="h-4 w-4" />
                 </Link>

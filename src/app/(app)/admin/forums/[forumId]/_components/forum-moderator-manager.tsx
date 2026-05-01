@@ -36,7 +36,7 @@ export function ForumModeratorManager({ forumId, allMods, enabledModIds: initial
         toast.error(error.message)
       } else {
         setEnabled(prev => new Set([...prev, userId]))
-        toast.success('Pastor assigned to this forum')
+        toast.success('Pastor assigned to this group')
         router.refresh()
       }
     } else {
@@ -49,7 +49,7 @@ export function ForumModeratorManager({ forumId, allMods, enabledModIds: initial
         toast.error(error.message)
       } else {
         setEnabled(prev => { const s = new Set(prev); s.delete(userId); return s })
-        toast.success('Pastor removed from this forum')
+        toast.success('Pastor removed from this group')
         router.refresh()
       }
     }
@@ -64,9 +64,9 @@ export function ForumModeratorManager({ forumId, allMods, enabledModIds: initial
           Assigned Pastors
         </CardTitle>
         <CardDescription>
-          Choose which pastors can publish, pin, lock, and remove posts in this forum.
-          Pastors only see compose controls for forums they are assigned to.
-          If none are assigned, only admins can publish to this forum.
+          Choose which pastors can publish, pin, lock, and remove posts in this group.
+          Pastors only see compose controls for groups they are assigned to.
+          If none are assigned, only admins can publish to this group.
         </CardDescription>
       </CardHeader>
       <CardContent>

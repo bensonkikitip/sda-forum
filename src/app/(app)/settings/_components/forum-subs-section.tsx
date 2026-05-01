@@ -74,14 +74,14 @@ export function ForumSubsSection({ userId, forums, initialSubscribedIds }: Props
           Who do you want to hear from?
         </CardTitle>
         <CardDescription>
-          Subscribe to forums to receive in-app notifications when new posts are published.
+          Subscribe to groups to receive in-app notifications when new posts are published.
           You still need topic preferences above to control which posts actually notify you.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1">
         {forums.length === 0 && (
           <p className="text-sm text-muted-foreground py-4 text-center">
-            No forums are visible to you yet.
+            No groups are visible to you yet.
           </p>
         )}
 

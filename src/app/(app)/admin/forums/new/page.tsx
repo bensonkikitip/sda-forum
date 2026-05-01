@@ -21,9 +21,9 @@ export default async function NewForumPage() {
       <AdminNav />
       <div>
         <Link href="/admin/forums" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
-          <ChevronLeft className="h-4 w-4" /> Back to forums
+          <ChevronLeft className="h-4 w-4" /> Back to groups
         </Link>
-        <h1 className="text-2xl font-bold">New Forum</h1>
+        <h1 className="text-2xl font-bold">New Group</h1>
       </div>
       <NewForumForm groups={groups ?? []} />
     </div>

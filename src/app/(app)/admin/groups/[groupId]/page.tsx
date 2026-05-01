@@ -42,7 +42,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ gr
       <AdminNav />
       <div>
         <Link href="/admin/groups" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
-          <ChevronLeft className="h-4 w-4" /> All groups
+          <ChevronLeft className="h-4 w-4" /> All audiences
         </Link>
         <h1 className="text-2xl font-bold">{group.name}</h1>
         {group.description && <p className="text-muted-foreground text-sm mt-1">{group.description}</p>}

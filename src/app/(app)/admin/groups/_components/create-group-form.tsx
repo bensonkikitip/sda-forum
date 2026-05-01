@@ -27,7 +27,7 @@ export function CreateGroupForm() {
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success(`Group "${name}" created`)
+      toast.success(`Audience "${name}" created`)
       setName('')
       setDescription('')
       router.refresh()
@@ -39,13 +39,13 @@ export function CreateGroupForm() {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Plus className="h-4 w-4" /> New Group
+          <Plus className="h-4 w-4" /> New Audience
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="group-name">Group name *</Label>
+            <Label htmlFor="group-name">Audience name *</Label>
             <Input
               id="group-name"
               value={name}
@@ -65,7 +65,7 @@ export function CreateGroupForm() {
             />
           </div>
           <Button type="submit" disabled={saving || !name.trim()}>
-            {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating…</> : 'Create group'}
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating…</> : 'Create audience'}
           </Button>
         </form>
       </CardContent>

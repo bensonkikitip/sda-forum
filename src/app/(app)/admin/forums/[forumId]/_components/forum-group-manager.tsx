@@ -37,7 +37,7 @@ export function ForumGroupManager({ forumId, allGroups, enabledGroupIds: initial
         toast.error(error.message)
       } else {
         setEnabled(prev => new Set([...prev, groupId]))
-        toast.success('Group added — members of this group can now see this forum')
+        toast.success('Audience added — its members can now see this group')
         router.refresh()
       }
     } else {
@@ -50,7 +50,7 @@ export function ForumGroupManager({ forumId, allGroups, enabledGroupIds: initial
         toast.error(error.message)
       } else {
         setEnabled(prev => { const s = new Set(prev); s.delete(groupId); return s })
-        toast.success('Group removed')
+        toast.success('Audience removed')
         router.refresh()
       }
     }
@@ -60,10 +60,10 @@ export function ForumGroupManager({ forumId, allGroups, enabledGroupIds: initial
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Group Visibility</CardTitle>
+        <CardTitle className="text-base">Audience Visibility</CardTitle>
         <CardDescription>
-          Control which groups can see this forum. Turn on a group to restrict access to its members.
-          If no groups are enabled the forum is visible to <strong>all members</strong>.
+          Control which audiences can see this group. Turn on an audience to restrict access to its members.
+          If no audiences are enabled this group is visible to <strong>all members</strong>.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -71,14 +71,14 @@ export function ForumGroupManager({ forumId, allGroups, enabledGroupIds: initial
         {/* Current visibility status */}
         <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${isRestricted ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-green-50 text-green-800 border border-green-200'}`}>
           {isRestricted
-            ? <><Lock className="h-4 w-4 shrink-0" /> Restricted — only members of the enabled groups below can see this forum.</>
-            : <><Globe className="h-4 w-4 shrink-0" /> Open — all members can see this forum.</>
+            ? <><Lock className="h-4 w-4 shrink-0" /> Restricted — only members of the enabled audiences below can see this group.</>
+            : <><Globe className="h-4 w-4 shrink-0" /> Open — all members can see this group.</>
           }
         </div>
 
         {allGroups.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No groups exist yet. <a href="/admin/groups" className="underline">Create a group first.</a>
+            No audiences exist yet. <a href="/admin/groups" className="underline">Create an audience first.</a>
           </p>
         ) : (
           <div className="divide-y">

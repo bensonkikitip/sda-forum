@@ -9,8 +9,8 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'SDA Community Forum',
-  description: 'A community forum for Seventh-day Adventists',
+  title: 'SDA Community',
+  description: 'Stay connected with announcements and events from your church and region.',
 }
 
 export default function RootLayout({

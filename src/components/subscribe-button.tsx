@@ -31,7 +31,7 @@ export function SubscribeButton({ forumId, isSubscribed: initial }: Props) {
         toast.error('Could not unsubscribe')
       } else {
         setSubscribed(false)
-        toast.success('Unsubscribed from this forum')
+        toast.success('Unsubscribed from this group')
       }
     } else {
       const { error } = await supabase

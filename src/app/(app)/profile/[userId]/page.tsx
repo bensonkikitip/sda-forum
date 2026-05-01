@@ -109,7 +109,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userId
                         {post.title}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {forum?.name ?? 'Forum'} · {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                        {forum?.name ?? 'Group'} · {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                       </p>
                     </div>
                     <Badge variant="secondary" className="shrink-0 text-xs">

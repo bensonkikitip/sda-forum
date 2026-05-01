@@ -84,7 +84,7 @@ export default async function SettingsPage() {
         initialPrefs={topicPrefsMap}
       />
 
-      {/* B: Forum subscriptions */}
+      {/* B: Group subscriptions */}
       <ForumSubsSection
         userId={user.id}
         forums={forums}
@@ -117,7 +117,7 @@ export default async function SettingsPage() {
       <Separator />
 
       <div>
-        <p className="text-sm text-muted-foreground mb-3">Signed in to SDA Forum</p>
+        <p className="text-sm text-muted-foreground mb-3">Signed in to SDA Community</p>
         <SignOutButton />
       </div>
     </div>

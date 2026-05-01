@@ -33,7 +33,7 @@ export function ForumAccessManager({ groupId, allForums, enabledForumIds: initia
         toast.error(error.message)
       } else {
         setEnabled(prev => new Set([...prev, forumId]))
-        toast.success('Forum access granted')
+        toast.success('Group access granted')
         router.refresh()
       }
     } else {
@@ -46,7 +46,7 @@ export function ForumAccessManager({ groupId, allForums, enabledForumIds: initia
         toast.error(error.message)
       } else {
         setEnabled(prev => { const s = new Set(prev); s.delete(forumId); return s })
-        toast.success('Forum access removed')
+        toast.success('Group access removed')
         router.refresh()
       }
     }
@@ -56,14 +56,14 @@ export function ForumAccessManager({ groupId, allForums, enabledForumIds: initia
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Forum Access</CardTitle>
+        <CardTitle className="text-base">Group Access</CardTitle>
         <CardDescription>
-          Toggle which forums this group can see. Forums with no group restrictions are visible to everyone.
+          Toggle which groups this audience can see. Groups with no audience restrictions are visible to everyone.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {allForums.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No forums created yet.</p>
+          <p className="text-sm text-muted-foreground">No groups created yet.</p>
         ) : (
           allForums.map(f => (
             <div key={f.id} className="flex items-center justify-between gap-4">

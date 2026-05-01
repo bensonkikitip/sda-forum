@@ -49,7 +49,7 @@ export default async function DigestPage({
       .select('name')
       .eq('id', digestSend.forum_id)
       .maybeSingle()
-    forumName = forum?.name ?? 'Forum'
+    forumName = forum?.name ?? 'Group'
   }
 
   // Use the user's regular client — RLS filters to events they can see
