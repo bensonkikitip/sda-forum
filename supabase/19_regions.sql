@@ -20,6 +20,7 @@ create table if not exists regions (
   slug        text unique not null,
   name        text not null,
   description text,
+  is_archived boolean not null default false,
   created_at  timestamptz not null default now()
 );
 

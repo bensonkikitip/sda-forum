@@ -1,18 +1,29 @@
 -- ============================================================
--- MIGRATION 21: Forum soft-delete (archive)
+-- MIGRATION 21: Soft-delete (archive) for forums, regions, and groups
 --
--- Adds is_archived to forums. Archived forums:
+-- Adds is_archived to forums, regions, and groups. Archived forums:
 --   • are hidden from all regular-client queries via user_can_see_forum()
 --   • still allow posts to be read via direct link (/posts/[id])
 --   • block new posts at the RPC level (no user level may post)
 --   • are visible to admins only through the admin panel (admin client
 --     bypasses RLS entirely)
 --
+-- Archived regions and groups:
+--   • are hidden from active admin lists (shown in a separate section)
+--   • do NOT affect existing forum visibility or member subscriptions
+--   • are purely an admin workflow tool — reversible at any time
+--
 -- Paste into Supabase SQL Editor → Run.
 -- ============================================================
 
--- 1. Add is_archived column ───────────────────────────────────
+-- 1. Add is_archived columns ──────────────────────────────────
 alter table forums
+  add column if not exists is_archived boolean not null default false;
+
+alter table regions
+  add column if not exists is_archived boolean not null default false;
+
+alter table groups
   add column if not exists is_archived boolean not null default false;
 
 -- 2. Update user_can_see_forum() ──────────────────────────────
