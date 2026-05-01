@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserRole } from '@/lib/auth'
 import { SignOutButton } from '@/components/sign-out-button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { MessageSquare, Shield, Home, Settings, Bell } from 'lucide-react'
 
 export async function Navbar() {
@@ -24,99 +23,123 @@ export async function Navbar() {
   const isModOrAdmin = role === 'admin' || role === 'moderator'
 
   return (
-    <header className="sticky top-0 z-50 w-full shadow-md" style={{ backgroundColor: 'var(--primary)' }}>
-      <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <>
+      {/* ── Top header ───────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-50 w-full border-b border-white/15 backdrop-blur-sm"
+        style={{ backgroundColor: 'var(--primary)' }}
+      >
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
-        {/* Left: logo + main nav */}
-        <div className="flex items-center gap-8">
-          <Link href="/home" className="flex items-center gap-2.5">
-            {/* Cross icon */}
-            <div className="flex items-center justify-center w-8 h-8 rounded-sm bg-white/15">
-              <span className="text-white font-bold text-sm leading-none">✝</span>
-            </div>
-            <span className="font-bold text-white text-lg tracking-tight leading-tight">
-              SDA Community
-            </span>
-          </Link>
-
-          <nav className="hidden sm:flex items-center gap-1">
-            {isModOrAdmin && (
-              <Link
-                href="/admin/forums"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                <Shield className="h-4 w-4" />
-                Admin
-              </Link>
-            )}
-          </nav>
-        </div>
-
-        {/* Right: inbox + settings + avatar */}
-        <div className="flex items-center gap-1">
-          {/* Inbox / notifications */}
-          <Link
-            href="/inbox"
-            className="relative p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-            title="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 h-4 w-4 flex items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
-                {unreadCount > 9 ? '9+' : unreadCount}
+          {/* Left: logo + main nav */}
+          <div className="flex items-center gap-6">
+            <Link href="/home" className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/15">
+                <span className="text-white font-black text-sm leading-none">✝</span>
+              </div>
+              <span className="font-black text-white text-xl tracking-tight leading-tight">
+                SDA Community
               </span>
-            )}
-          </Link>
+            </Link>
 
-          {/* Settings */}
-          <Link
-            href="/settings"
-            className="p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-            title="Settings"
-          >
-            <Settings className="h-5 w-5" />
-          </Link>
+            <nav className="hidden sm:flex items-center gap-1">
+              {isModOrAdmin && (
+                <Link
+                  href="/admin/forums"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors font-medium"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
+              )}
+            </nav>
+          </div>
 
-          {/* Avatar + name */}
-          <Link
-            href={`/profile/${user.id}`}
-            className="flex items-center gap-2 ml-1 px-2 py-1.5 rounded-md hover:bg-white/10 transition-colors"
-          >
-            <Avatar className="h-8 w-8 ring-2 ring-white/30">
-              <AvatarImage src={profile?.avatar_url ?? undefined} />
-              <AvatarFallback className="text-xs bg-white/20 text-white">{initials}</AvatarFallback>
-            </Avatar>
-            <span className="hidden md:inline text-sm font-medium text-white">
-              {profile?.display_name ?? user.email}
-            </span>
-          </Link>
+          {/* Right: inbox + settings + avatar */}
+          <div className="flex items-center gap-1">
+            {/* Inbox / notifications */}
+            <Link
+              href="/inbox"
+              className="relative p-2.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+              title="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-accent text-[10px] font-black text-accent-foreground">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
 
-          <SignOutButton />
+            {/* Settings */}
+            <Link
+              href="/settings"
+              className="p-2.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+              title="Settings"
+            >
+              <Settings className="h-5 w-5" />
+            </Link>
+
+            {/* Avatar + name */}
+            <Link
+              href={`/profile/${user.id}`}
+              className="flex items-center gap-2 ml-1 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <Avatar className="h-8 w-8 ring-2 ring-white/30">
+                <AvatarImage src={profile?.avatar_url ?? undefined} />
+                <AvatarFallback className="text-xs font-bold bg-white/20 text-white">{initials}</AvatarFallback>
+              </Avatar>
+              <span className="hidden md:inline text-sm font-semibold text-white">
+                {profile?.display_name ?? user.email}
+              </span>
+            </Link>
+
+            <SignOutButton />
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile bottom nav */}
-      <div className="sm:hidden flex border-t border-white/10" style={{ backgroundColor: 'var(--primary)' }}>
-        <Link href="/home" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors">
-          <Home className="h-4 w-4 mb-0.5" />
+      {/* ── Mobile bottom nav (fixed, only on small screens) ─────── */}
+      <nav
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border/50 backdrop-blur-md"
+        style={{ backgroundColor: 'color-mix(in oklch, var(--primary) 97%, transparent)' }}
+      >
+        <Link
+          href="/home"
+          className="flex-1 flex flex-col items-center py-3 text-[11px] font-semibold text-white/70 hover:text-white transition-colors gap-0.5"
+        >
+          <Home className="h-5 w-5" />
           Home
         </Link>
-        <Link href="/inbox" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors relative">
-          <Bell className="h-4 w-4 mb-0.5" />
+        <Link
+          href="/inbox"
+          className="flex-1 flex flex-col items-center py-3 text-[11px] font-semibold text-white/70 hover:text-white transition-colors gap-0.5 relative"
+        >
+          <Bell className="h-5 w-5" />
           Inbox
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-6 h-3 w-3 bg-accent rounded-full text-[8px] text-accent-foreground flex items-center justify-center font-bold">
-              {unreadCount}
+            <span className="absolute top-2 right-[calc(50%-14px)] h-3.5 w-3.5 bg-accent rounded-full text-[8px] text-accent-foreground flex items-center justify-center font-black">
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Link>
         {isModOrAdmin && (
-          <Link href="/admin/forums" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors">
-            <Shield className="h-4 w-4 mb-0.5" />
+          <Link
+            href="/admin/forums"
+            className="flex-1 flex flex-col items-center py-3 text-[11px] font-semibold text-white/70 hover:text-white transition-colors gap-0.5"
+          >
+            <Shield className="h-5 w-5" />
             Admin
           </Link>
         )}
-      </div>
-    </header>
+        <Link
+          href="/settings"
+          className="flex-1 flex flex-col items-center py-3 text-[11px] font-semibold text-white/70 hover:text-white transition-colors gap-0.5"
+        >
+          <Settings className="h-5 w-5" />
+          Settings
+        </Link>
+      </nav>
+    </>
   )
 }
