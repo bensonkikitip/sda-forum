@@ -160,10 +160,11 @@ alter table dm_messages enable row level security;
 
 -- ── announcements ────────────────────────────────────────────
 create table if not exists announcements (
-  id        uuid primary key default gen_random_uuid(),
-  author_id uuid not null references auth.users(id) on delete cascade,
-  title     text not null,
-  body_md   text not null,
+  id         uuid primary key default gen_random_uuid(),
+  author_id  uuid not null references auth.users(id) on delete cascade,
+  title      text not null,
+  body_md    text not null,
+  expires_at timestamptz,
   created_at timestamptz not null default now()
 );
 alter table announcements enable row level security;

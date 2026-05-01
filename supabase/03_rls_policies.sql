@@ -264,6 +264,10 @@ create policy "Admins can create announcements"
   on announcements for insert
   with check (is_admin(auth.uid()));
 
+create policy "Admins can delete announcements"
+  on announcements for delete
+  using (is_admin(auth.uid()));
+
 -- ── bans ─────────────────────────────────────────────────────
 create policy "Mods and admins can read bans"
   on bans for select
