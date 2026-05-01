@@ -9,7 +9,12 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-type Church = { id: string; name: string; region: string | null }
+type Church = {
+  id: string
+  name: string
+  region: string | null
+  region_name: string | null
+}
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other']
 
@@ -36,13 +41,22 @@ export default function OnboardingPage() {
     const timeout = setTimeout(async () => {
       const { data, error } = await supabase
         .from('churches')
-        .select('id, name, region')
+        .select('id, name, region, regions(name)')
         .ilike('name', `%${churchSearch}%`)
         .order('name')
         .limit(20)
       if (!error) {
-        setChurches(data ?? [])
-        setChurchNoResults((data ?? []).length === 0)
+        const rows = (data ?? []).map(c => {
+          const r = Array.isArray(c.regions) ? c.regions[0] : c.regions
+          return {
+            id: c.id,
+            name: c.name,
+            region: c.region,
+            region_name: (r as { name: string } | null)?.name ?? null,
+          }
+        })
+        setChurches(rows)
+        setChurchNoResults(rows.length === 0)
       }
     }, 300)
     return () => clearTimeout(timeout)
@@ -204,18 +218,28 @@ export default function OnboardingPage() {
                   No churches found for &ldquo;{churchSearch}&rdquo;. Contact an admin to add your church.
                 </p>
               )}
-              {churchId && (
-                <p className="text-xs text-green-600">
-                  ✓ Church selected.{' '}
-                  <button
-                    type="button"
-                    className="underline text-muted-foreground"
-                    onClick={() => { setChurchId(''); setChurchSearch(''); setChurchNoResults(false) }}
-                  >
-                    Change
-                  </button>
-                </p>
-              )}
+              {churchId && (() => {
+                const selected = churches.find(c => c.id === churchId)
+                return (
+                  <div className="text-xs space-y-1">
+                    <p className="text-green-600">
+                      ✓ Church selected.{' '}
+                      <button
+                        type="button"
+                        className="underline text-muted-foreground"
+                        onClick={() => { setChurchId(''); setChurchSearch(''); setChurchNoResults(false) }}
+                      >
+                        Change
+                      </button>
+                    </p>
+                    {selected?.region_name && (
+                      <p className="text-muted-foreground">
+                        Region: <span className="font-medium text-foreground">{selected.region_name}</span> — you&rsquo;ll receive announcements scoped to this region too.
+                      </p>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
