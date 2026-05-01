@@ -8,10 +8,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { MessageSquare, Pin, Lock, Plus, ChevronLeft, CalendarDays, MapPin, Clock } from 'lucide-react'
+import { MessageSquare, Pin, Lock, Plus, ChevronLeft, MapPin, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, formatDistanceToNow } from 'date-fns'
 import { SubscribeButton } from '@/components/subscribe-button'
+import { DateBadge } from '@/components/date-badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -99,7 +100,7 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
         ) : (
           <>
             {active.length > 0 && (
-              <PostSection posts={active} />
+              <PostSection posts={active} forumColor={forum.color} />
             )}
 
             {/* Past events */}
@@ -111,7 +112,7 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
                     Past Events
                   </h2>
                 </div>
-                <PostSection posts={past} muted />
+                <PostSection posts={past} forumColor={forum.color} muted />
               </div>
             )}
           </>
@@ -143,35 +144,138 @@ type Post = {
   author: { id: string; display_name: string; avatar_url: string | null } | null
 }
 
-function PostSection({ posts, muted = false }: { posts: Post[]; muted?: boolean }) {
+function PostSection({
+  posts,
+  forumColor,
+  muted = false,
+}: {
+  posts: Post[]
+  forumColor?: string | null
+  muted?: boolean
+}) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {posts.map(post => {
         const isEvent = !!post.event_starts_at
 
+        // ── Event card ──────────────────────────────────────────────────────
+        if (isEvent && post.event_starts_at) {
+          const eventDate = new Date(post.event_starts_at)
+          const dayName = format(eventDate, 'EEEE')
+          const timeStr = format(eventDate, 'h:mm a')
+
+          return (
+            <Link key={post.id} href={`/posts/${post.id}`}>
+              <div
+                className={cn(
+                  'flex gap-4 p-5 rounded-xl border transition-all duration-200 group',
+                  muted
+                    ? 'bg-muted/20 hover:bg-muted/40 border-border/40 opacity-70 hover:opacity-90'
+                    : 'bg-card hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20'
+                )}
+              >
+                {/* Date badge */}
+                <DateBadge
+                  date={eventDate}
+                  color={muted ? undefined : (forumColor ?? undefined)}
+                />
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start gap-2 flex-wrap">
+                    {post.is_pinned && <Pin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />}
+                    {post.is_locked && <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />}
+                    <p className={cn(
+                      'font-bold text-base leading-snug transition-colors',
+                      muted ? 'text-muted-foreground' : 'group-hover:text-primary'
+                    )}>
+                      {post.title}
+                    </p>
+                  </div>
+
+                  {/* Event time + location */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5">
+                    <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5 shrink-0" />
+                      {dayName} · {timeStr}
+                    </span>
+                    {post.event_location && (
+                      <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="line-clamp-1">{post.event_location}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Topic badges */}
+                  {post.post_topics.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {post.post_topics.map(pt => {
+                        const t = pt.topics
+                        if (!t) return null
+                        return (
+                          <span
+                            key={pt.topic_id}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            style={{
+                              backgroundColor: t.color ? `${t.color}18` : undefined,
+                              color: t.color ?? undefined,
+                              border: `1px solid ${t.color ? `${t.color}50` : 'transparent'}`,
+                            }}
+                          >
+                            {t.icon && <span>{t.icon}</span>}
+                            {t.name}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Footer: author + comments */}
+                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                    <span>{post.author?.display_name ?? 'Unknown'}</span>
+                    <span>·</span>
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="h-3 w-3" />
+                      {post.comment_count}
+                    </span>
+                    {post.is_pinned && (
+                      <Badge variant="secondary" className="text-[10px] py-0 font-medium">Pinned</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )
+        }
+
+        // ── Announcement card ────────────────────────────────────────────────
         return (
           <Link key={post.id} href={`/posts/${post.id}`}>
             <div
               className={cn(
-                'flex gap-4 p-4 rounded-xl border transition-all group',
+                'flex gap-4 p-5 rounded-xl border-l-4 border border-l-transparent transition-all duration-200 group',
                 muted
-                  ? 'bg-muted/30 hover:bg-muted/50 border-border/50'
-                  : 'bg-card hover:shadow-sm hover:border-primary/30'
+                  ? 'bg-muted/20 hover:bg-muted/40 border-border/40 opacity-70 hover:opacity-90'
+                  : 'bg-card hover:shadow-md hover:-translate-y-0.5'
               )}
+              style={!muted ? {
+                borderLeftColor: forumColor ?? 'var(--primary)',
+              } : undefined}
             >
-              <Avatar className={cn('h-10 w-10 shrink-0 mt-0.5', muted && 'opacity-60')}>
+              <Avatar className={cn('h-9 w-9 shrink-0 mt-0.5', muted && 'opacity-60')}>
                 <AvatarImage src={post.author?.avatar_url ?? undefined} />
-                <AvatarFallback className="text-xs">
+                <AvatarFallback className="text-xs font-semibold">
                   {post.author?.display_name?.slice(0, 2).toUpperCase() ?? '??'}
                 </AvatarFallback>
               </Avatar>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {post.is_pinned && <Pin className="h-3 w-3 text-primary shrink-0" />}
-                  {post.is_locked && <Lock className="h-3 w-3 text-muted-foreground shrink-0" />}
+                <div className="flex items-start gap-2 flex-wrap">
+                  {post.is_pinned && <Pin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />}
+                  {post.is_locked && <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />}
                   <p className={cn(
-                    'font-semibold transition-colors line-clamp-1',
+                    'font-bold text-base leading-snug transition-colors',
                     muted ? 'text-muted-foreground' : 'group-hover:text-primary'
                   )}>
                     {post.title}
@@ -180,14 +284,14 @@ function PostSection({ posts, muted = false }: { posts: Post[]; muted?: boolean 
 
                 {/* Topic badges */}
                 {post.post_topics.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
+                  <div className="flex flex-wrap gap-1 mt-1.5">
                     {post.post_topics.map(pt => {
                       const t = pt.topics
                       if (!t) return null
                       return (
                         <span
                           key={pt.topic_id}
-                          className="inline-flex items-center gap-1 px-2 py-0 rounded-full text-[10px] font-medium"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
                           style={{
                             backgroundColor: t.color ? `${t.color}18` : undefined,
                             color: t.color ?? undefined,
@@ -202,28 +306,8 @@ function PostSection({ posts, muted = false }: { posts: Post[]; muted?: boolean 
                   </div>
                 )}
 
-                {/* Event date + location pill */}
-                {isEvent && post.event_starts_at && (
-                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    <span className={cn(
-                      'inline-flex items-center gap-1 text-xs font-medium rounded-full px-2 py-0.5',
-                      muted
-                        ? 'bg-muted text-muted-foreground'
-                        : 'bg-primary/10 text-primary'
-                    )}>
-                      <CalendarDays className="h-3 w-3" />
-                      {format(new Date(post.event_starts_at), 'EEE, MMM d, yyyy')}
-                    </span>
-                    {post.event_location && (
-                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {post.event_location}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                {/* Footer: author + time + comments */}
+                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                   <span className="font-medium">{post.author?.display_name ?? 'Unknown'}</span>
                   <span>·</span>
                   <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
@@ -232,8 +316,12 @@ function PostSection({ posts, muted = false }: { posts: Post[]; muted?: boolean 
                     <MessageSquare className="h-3 w-3" />
                     {post.comment_count}
                   </span>
-                  {post.is_pinned && <Badge variant="secondary" className="text-[10px] py-0">Pinned</Badge>}
-                  {post.is_locked && <Badge variant="outline" className="text-[10px] py-0">Locked</Badge>}
+                  {post.is_pinned && (
+                    <Badge variant="secondary" className="text-[10px] py-0 font-medium">Pinned</Badge>
+                  )}
+                  {post.is_locked && (
+                    <Badge variant="outline" className="text-[10px] py-0">Locked</Badge>
+                  )}
                 </div>
               </div>
             </div>
