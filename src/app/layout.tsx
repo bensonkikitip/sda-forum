@@ -10,8 +10,7 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: 'SDA Community',
-  description:
-    'Stay connected with announcements and events from your church and region.',
+  description: 'Stay connected with announcements and events from your church and region.',
   appleWebApp: {
     capable: true,
     title: 'SDA Community',

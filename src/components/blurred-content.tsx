@@ -49,7 +49,7 @@ export function BlurredContent({ isBlurred, isMod, children }: Props) {
       <div className="text-center space-y-1 py-4 px-6">
         <AlertTriangle className="h-5 w-5 text-muted-foreground mx-auto" />
         <p className="text-sm font-medium text-muted-foreground">Content reported</p>
-        <p className="text-xs text-muted-foreground">This content is under review by a moderator.</p>
+        <p className="text-xs text-muted-foreground">This content is under review.</p>
       </div>
     </div>
   )

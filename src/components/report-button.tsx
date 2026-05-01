@@ -45,7 +45,7 @@ export function ReportButton({ targetType, targetId, alreadyReported }: Props) {
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success('Report submitted. Moderators will review it.')
+      toast.success('Report submitted. An admin will review it.')
       setOpen(false)
       setReason('')
       router.refresh()

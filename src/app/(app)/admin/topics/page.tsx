@@ -23,7 +23,7 @@ export default async function AdminTopicsPage() {
       <div>
         <h1 className="text-2xl font-bold">Topics</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Topics let moderators tag posts so members can choose which kinds of content they hear about.
+          Topics let pastors tag posts so members can choose which kinds of content they hear about.
         </p>
       </div>
 

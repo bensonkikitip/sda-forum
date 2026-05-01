@@ -36,9 +36,9 @@ export default async function AdminGroupsPage() {
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
       <AdminNav />
       <div>
-        <h1 className="text-2xl font-bold">Groups</h1>
+        <h1 className="text-2xl font-bold">Audiences</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Groups bundle churches together. Forums can be restricted to specific groups.
+          Audiences bundle churches together. Groups can be restricted to specific audiences.
         </p>
       </div>
 
@@ -46,10 +46,10 @@ export default async function AdminGroupsPage() {
 
       <div>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Existing groups ({(groups ?? []).length})
+          Existing audiences ({(groups ?? []).length})
         </h2>
         {(groups ?? []).length === 0 ? (
-          <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
+          <p className="text-sm text-muted-foreground">No audiences yet. Create one above.</p>
         ) : (
           <div className="space-y-2">
             {(groups ?? []).map(g => (

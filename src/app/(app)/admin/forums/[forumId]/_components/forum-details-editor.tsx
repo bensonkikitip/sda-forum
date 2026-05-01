@@ -42,7 +42,7 @@ export function ForumDetailsEditor({ forumId, initialName, initialDescription }:
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success('Forum updated')
+      toast.success('Group updated')
       router.refresh()
     }
     setSaving(false)
@@ -58,10 +58,10 @@ export function ForumDetailsEditor({ forumId, initialName, initialDescription }:
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Pencil className="h-4 w-4 text-primary" />
-          Forum Details
+          Group Details
         </CardTitle>
         <CardDescription>
-          Edit the forum name and description. Changes are not saved until you click Save.
+          Edit the group name and description. Changes are not saved until you click Save.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -71,7 +71,7 @@ export function ForumDetailsEditor({ forumId, initialName, initialDescription }:
             id="forum-name"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Forum name"
+            placeholder="Group name"
           />
         </div>
 
@@ -81,7 +81,7 @@ export function ForumDetailsEditor({ forumId, initialName, initialDescription }:
             id="forum-description"
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="What is this forum about?"
+            placeholder="What is this group about?"
             rows={3}
           />
         </div>

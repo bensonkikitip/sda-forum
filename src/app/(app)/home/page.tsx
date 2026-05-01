@@ -64,7 +64,7 @@ export default async function HomePage() {
             Welcome to
           </p>
           <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-4">
-            SDA Community Forums
+            SDA Community
           </h1>
           <p className="text-white/70 text-base max-w-xl mx-auto leading-relaxed">
             Stay connected with messages and updates from your pastors and church leaders.
@@ -100,7 +100,7 @@ export default async function HomePage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <LayoutGrid className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold">Forums</h2>
+            <h2 className="text-xl font-bold">Groups</h2>
             <Badge variant="secondary" className="font-mono text-xs">{forums.length}</Badge>
           </div>
           {isModOrAdmin && (
@@ -108,7 +108,7 @@ export default async function HomePage() {
               href="/admin/forums"
               className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}
             >
-              Manage forums
+              Manage groups
             </Link>
           )}
         </div>
@@ -117,11 +117,11 @@ export default async function HomePage() {
         {forums.length === 0 ? (
           <div className="text-center py-16 border rounded-xl bg-muted/30">
             <MessageSquare className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="font-semibold text-muted-foreground">No forums yet</p>
+            <p className="font-semibold text-muted-foreground">No groups yet</p>
             {isModOrAdmin && (
               <p className="text-sm mt-2 text-muted-foreground">
                 <Link href="/admin/forums/new" className="underline hover:no-underline">
-                  Create the first forum
+                  Create the first group
                 </Link>
               </p>
             )}

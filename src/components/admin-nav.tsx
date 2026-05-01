@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { LayoutList, Users, Flag, Megaphone, Layers, Tag, CalendarDays, Map } from 'lucide-react'
 
 const links = [
-  { href: '/admin/forums',        label: 'Forums',        icon: LayoutList },
+  { href: '/admin/forums',        label: 'Groups',        icon: LayoutList },
   { href: '/admin/regions',       label: 'Regions',       icon: Map },
-  { href: '/admin/groups',        label: 'Groups',        icon: Layers },
+  { href: '/admin/groups',        label: 'Audiences',     icon: Layers },
   { href: '/admin/topics',        label: 'Topics',        icon: Tag },
   { href: '/admin/reports',       label: 'Reports',       icon: Flag },
   { href: '/admin/users',         label: 'Users',         icon: Users },

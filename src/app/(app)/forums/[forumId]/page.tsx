@@ -53,7 +53,7 @@ export default async function ForumPage({ params }: { params: Promise<{ forumId:
             href="/home"
             className="inline-flex items-center gap-1 text-sm text-white/70 hover:text-white mb-5 transition-colors"
           >
-            <ChevronLeft className="h-4 w-4" /> All forums
+            <ChevronLeft className="h-4 w-4" /> All groups
           </Link>
 
           <div className="flex flex-wrap items-start justify-between gap-4">

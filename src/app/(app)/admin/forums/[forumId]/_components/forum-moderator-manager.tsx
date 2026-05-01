@@ -36,7 +36,7 @@ export function ForumModeratorManager({ forumId, allMods, enabledModIds: initial
         toast.error(error.message)
       } else {
         setEnabled(prev => new Set([...prev, userId]))
-        toast.success('Moderator assigned to this forum')
+        toast.success('Pastor assigned to this group')
         router.refresh()
       }
     } else {
@@ -49,7 +49,7 @@ export function ForumModeratorManager({ forumId, allMods, enabledModIds: initial
         toast.error(error.message)
       } else {
         setEnabled(prev => { const s = new Set(prev); s.delete(userId); return s })
-        toast.success('Moderator removed from this forum')
+        toast.success('Pastor removed from this group')
         router.refresh()
       }
     }
@@ -61,19 +61,19 @@ export function ForumModeratorManager({ forumId, allMods, enabledModIds: initial
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          Assigned Moderators
+          Assigned Pastors
         </CardTitle>
         <CardDescription>
-          Choose which moderators can pin, lock, and remove posts in this forum.
-          Moderators only see mod controls for forums they are assigned to.
-          If none are assigned, only admins can moderate this forum.
+          Choose which pastors can publish, pin, lock, and remove posts in this group.
+          Pastors only see compose controls for groups they are assigned to.
+          If none are assigned, only admins can publish to this group.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {allMods.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No moderators exist yet.{' '}
-            <a href="/admin/users" className="underline">Promote a user to moderator first.</a>
+            No pastors exist yet.{' '}
+            <a href="/admin/users" className="underline">Promote a member to pastor first.</a>
           </p>
         ) : (
           <div className="divide-y">

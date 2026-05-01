@@ -53,7 +53,7 @@ export function ChurchMembershipManager({ groupId, memberChurches: initial }: Pr
       setMembers(prev => [...prev, church])
       setSearch('')
       setResults([])
-      toast.success(`${church.name} added to group`)
+      toast.success(`${church.name} added to audience`)
       router.refresh()
     }
     setLoading(false)
@@ -70,7 +70,7 @@ export function ChurchMembershipManager({ groupId, memberChurches: initial }: Pr
       toast.error(error.message)
     } else {
       setMembers(prev => prev.filter(m => m.id !== churchId))
-      toast.success(`${churchName} removed from group`)
+      toast.success(`${churchName} removed from audience`)
       router.refresh()
     }
   }
@@ -108,7 +108,7 @@ export function ChurchMembershipManager({ groupId, memberChurches: initial }: Pr
 
         {/* Current members */}
         {members.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No churches in this group yet.</p>
+          <p className="text-sm text-muted-foreground">No churches in this audience yet.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {members.map(m => (

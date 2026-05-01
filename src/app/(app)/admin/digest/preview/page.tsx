@@ -40,7 +40,7 @@ export default async function DigestPreviewPage({
   if (scope === 'forum' && forumId) {
     const admin = createAdminClient()
     const { data: forum } = await admin.from('forums').select('name').eq('id', forumId).maybeSingle()
-    forumName = forum?.name ?? 'Forum'
+    forumName = forum?.name ?? 'Group'
   }
 
   // Fetch preview data

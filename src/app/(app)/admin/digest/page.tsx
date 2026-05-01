@@ -123,11 +123,11 @@ export default async function AdminDigestPage() {
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <LayoutList className="h-3.5 w-3.5" />
-          Forum digests
+          Group digests
         </h2>
 
         {forums.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No forums assigned.</p>
+          <p className="text-sm text-muted-foreground">No groups assigned.</p>
         ) : (
           <div className="space-y-2">
             {forums.map(forum => {

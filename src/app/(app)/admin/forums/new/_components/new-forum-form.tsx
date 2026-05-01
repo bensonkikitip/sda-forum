@@ -56,7 +56,7 @@ export function NewForumForm({ groups }: { groups: Group[] }) {
       .single()
 
     if (error || !forum) {
-      toast.error(error?.message ?? 'Failed to create forum')
+      toast.error(error?.message ?? 'Failed to create group')
       setSaving(false)
       return
     }
@@ -64,10 +64,10 @@ export function NewForumForm({ groups }: { groups: Group[] }) {
     if (selectedGroups.size > 0) {
       const rows = [...selectedGroups].map(gid => ({ forum_id: forum.id, group_id: gid }))
       const { error: fgError } = await supabase.from('forum_groups').insert(rows)
-      if (fgError) toast.error('Forum created but group visibility failed: ' + fgError.message)
+      if (fgError) toast.error('Group created but audience visibility failed: ' + fgError.message)
     }
 
-    toast.success(`Forum "${name}" created!`)
+    toast.success(`Group "${name}" created!`)
     router.push('/admin/forums')
     router.refresh()
   }
@@ -78,7 +78,7 @@ export function NewForumForm({ groups }: { groups: Group[] }) {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Forum name *</Label>
+              <Label htmlFor="name">Group name *</Label>
               <Input
                 id="name"
                 value={name}
@@ -106,7 +106,7 @@ export function NewForumForm({ groups }: { groups: Group[] }) {
               id="description"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="What is this forum about?"
+              placeholder="What is this group about?"
               rows={2}
             />
           </div>
@@ -126,16 +126,16 @@ export function NewForumForm({ groups }: { groups: Group[] }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Visibility</Label>
+            <Label>Audiences</Label>
             {groups.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                No groups yet — forum will be visible to all members.{' '}
-                <a href="/admin/groups" className="underline">Create a group first.</a>
+                No audiences yet — group will be visible to all members.{' '}
+                <a href="/admin/groups" className="underline">Create an audience first.</a>
               </p>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Select groups that can see this forum. Leave all unchecked = visible to everyone.
+                  Select audiences that can see this group. Leave all unchecked = visible to everyone.
                 </p>
                 <div className="space-y-2 pt-1">
                   {groups.map(g => (
@@ -155,7 +155,7 @@ export function NewForumForm({ groups }: { groups: Group[] }) {
 
           <div className="flex gap-3 pt-1">
             <Button type="submit" disabled={saving || !name.trim() || !slug.trim()}>
-              {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating…</> : 'Create forum'}
+              {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating…</> : 'Create group'}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.push('/admin/forums')}>
               Cancel
