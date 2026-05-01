@@ -51,6 +51,7 @@ create table if not exists forums (
   icon        text,             -- emoji or lucide icon name
   color       text,             -- hex colour e.g. #3b82f6
   is_private  boolean not null default false,  -- reserved for future use
+  is_archived boolean not null default false,  -- soft delete: hidden from members, no new posts
   created_by  uuid references auth.users(id) on delete set null,
   created_at  timestamptz not null default now()
 );

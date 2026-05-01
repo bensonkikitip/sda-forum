@@ -6,7 +6,8 @@ import { ForumDetailsEditor } from './_components/forum-details-editor'
 import { ForumGroupManager } from './_components/forum-group-manager'
 import { ForumModeratorManager } from './_components/forum-moderator-manager'
 import { ForumRegionManager } from './_components/forum-region-manager'
-import { ChevronLeft } from 'lucide-react'
+import { ForumArchiveControl } from './_components/forum-archive-control'
+import { ChevronLeft, Archive } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -25,7 +26,7 @@ export default async function ForumDetailPage({ params }: { params: Promise<{ fo
     allRegionsResult,
     forumRegionsResult,
   ] = await Promise.all([
-    admin.from('forums').select('id, name, description, icon, color, slug').eq('id', forumId).maybeSingle(),
+    admin.from('forums').select('id, name, description, icon, color, slug, is_archived').eq('id', forumId).maybeSingle(),
     admin.from('groups').select('id, name, description').order('name'),
     admin.from('forum_groups').select('group_id').eq('forum_id', forumId),
     admin.from('user_roles').select('user_id').eq('role', 'moderator'),
@@ -65,11 +66,25 @@ export default async function ForumDetailPage({ params }: { params: Promise<{ fo
         <div className="flex items-center gap-3">
           <span className="text-3xl">{forum.icon ?? '💬'}</span>
           <div>
-            <h1 className="text-2xl font-bold">{forum.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold">{forum.name}</h1>
+              {forum.is_archived && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                  <Archive className="h-3 w-3" /> Archived
+                </span>
+              )}
+            </div>
             {forum.description && <p className="text-muted-foreground text-sm mt-0.5">{forum.description}</p>}
           </div>
         </div>
       </div>
+
+      {forum.is_archived && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+          <Archive className="h-4 w-4 shrink-0 mt-0.5" />
+          <p>This group is archived. It is hidden from all members and no new posts are allowed. You can unarchive it below to restore full access.</p>
+        </div>
+      )}
 
       <ForumDetailsEditor
         forumId={forumId}
@@ -94,6 +109,8 @@ export default async function ForumDetailPage({ params }: { params: Promise<{ fo
         allGroups={allGroups}
         enabledGroupIds={enabledGroupIds}
       />
+
+      <ForumArchiveControl forumId={forumId} isArchived={forum.is_archived ?? false} />
     </div>
   )
 }

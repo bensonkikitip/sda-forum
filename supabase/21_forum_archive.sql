@@ -1,39 +1,63 @@
 -- ============================================================
--- MIGRATION 17: Topic notification preferences
+-- MIGRATION 21: Forum soft-delete (archive)
 --
--- 1. user_topic_preferences table — per-user opt-in for each topic,
---    with separate in-app and email switches. Default = opted out.
---
--- 2. create_post_with_topics RPC — atomically inserts a post and its
---    topic tags, then fans out notifications with topic filtering:
---    • posts WITH topics → only notify subscribers who have
---      notify_inapp = true for at least one matching topic.
---    • posts WITHOUT topics → notify all subscribers (legacy behaviour).
---
--- 3. Drop the old trg_fanout_new_post trigger — the RPC now handles
---    all fanout so the trigger is no longer needed.
+-- Adds is_archived to forums. Archived forums:
+--   • are hidden from all regular-client queries via user_can_see_forum()
+--   • still allow posts to be read via direct link (/posts/[id])
+--   • block new posts at the RPC level (no user level may post)
+--   • are visible to admins only through the admin panel (admin client
+--     bypasses RLS entirely)
 --
 -- Paste into Supabase SQL Editor → Run.
 -- ============================================================
 
--- 1. User topic preferences
-create table if not exists user_topic_preferences (
-  user_id      uuid not null references auth.users(id) on delete cascade,
-  topic_id     uuid not null references topics(id)     on delete cascade,
-  notify_inapp boolean not null default true,
-  notify_email boolean not null default false,
-  created_at   timestamptz not null default now(),
-  primary key (user_id, topic_id)
-);
+-- 1. Add is_archived column ───────────────────────────────────
+alter table forums
+  add column if not exists is_archived boolean not null default false;
 
-alter table user_topic_preferences enable row level security;
+-- 2. Update user_can_see_forum() ──────────────────────────────
+-- Short-circuit: archived forums return false for everyone using
+-- the regular client. Admins see them only via the admin client
+-- (createAdminClient bypasses RLS).
+create or replace function user_can_see_forum(uid uuid, fid uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select
+    -- Archived forums are invisible via the regular client
+    not coalesce((select is_archived from forums where id = fid), false)
+    and (
+      is_admin(uid)
+      or (
+        not exists (select 1 from forum_groups  where forum_id = fid)
+        and not exists (select 1 from forum_regions where forum_id = fid)
+      )
+      or exists (
+        -- group match
+        select 1
+        from   forum_groups  fg
+        join   church_groups cg on cg.group_id  = fg.group_id
+        join   profiles      p  on p.church_id  = cg.church_id
+        where  fg.forum_id = fid
+          and  p.id        = uid
+      )
+      or exists (
+        -- region match
+        select 1
+        from   forum_regions fr
+        join   churches      c on c.region_id = fr.region_id
+        join   profiles      p on p.church_id = c.id
+        where  fr.forum_id = fid
+          and  p.id        = uid
+      )
+    );
+$$;
 
-create policy "Users manage own topic prefs"
-  on user_topic_preferences for all
-  using  (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
-
--- 2. Atomic post + topics insert with topic-filtered fanout
+-- 3. Update create_post_with_topics() ─────────────────────────
+-- Block posting in archived forums for every user level.
 create or replace function create_post_with_topics(
   p_forum_id           uuid,
   p_title              text,
@@ -44,7 +68,7 @@ create or replace function create_post_with_topics(
   p_event_location_url text        default null,
   p_topic_ids          uuid[]      default null
 )
-returns uuid   -- the new post id
+returns uuid
 language plpgsql
 security definer
 set search_path = public
@@ -97,10 +121,8 @@ begin
   where fs.forum_id = p_forum_id
     and fs.user_id <> auth.uid()
     and (
-      -- No topics on this post → notify everyone subscribed (legacy).
       not has_topics
       or
-      -- Topics present → only notify users opted into at least one.
       exists (
         select 1
         from unnest(p_topic_ids) as t(tid)
@@ -114,6 +136,3 @@ begin
   return new_post_id;
 end;
 $$;
-
--- 3. Drop the old per-row trigger — fanout is now done inside the RPC.
-drop trigger if exists trg_fanout_new_post on posts;

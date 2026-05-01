@@ -49,28 +49,32 @@ stable
 set search_path = public
 as $$
   select
-    is_admin(uid)
-    or (
-      not exists (select 1 from forum_groups  where forum_id = fid)
-      and not exists (select 1 from forum_regions where forum_id = fid)
-    )
-    or exists (
-      -- group match
-      select 1
-      from   forum_groups  fg
-      join   church_groups cg on cg.group_id  = fg.group_id
-      join   profiles      p  on p.church_id  = cg.church_id
-      where  fg.forum_id = fid
-        and  p.id        = uid
-    )
-    or exists (
-      -- region match
-      select 1
-      from   forum_regions fr
-      join   churches      c on c.region_id = fr.region_id
-      join   profiles      p on p.church_id = c.id
-      where  fr.forum_id = fid
-        and  p.id        = uid
+    -- Archived forums are invisible via the regular client (admins use admin client)
+    not coalesce((select is_archived from forums where id = fid), false)
+    and (
+      is_admin(uid)
+      or (
+        not exists (select 1 from forum_groups  where forum_id = fid)
+        and not exists (select 1 from forum_regions where forum_id = fid)
+      )
+      or exists (
+        -- group match
+        select 1
+        from   forum_groups  fg
+        join   church_groups cg on cg.group_id  = fg.group_id
+        join   profiles      p  on p.church_id  = cg.church_id
+        where  fg.forum_id = fid
+          and  p.id        = uid
+      )
+      or exists (
+        -- region match
+        select 1
+        from   forum_regions fr
+        join   churches      c on c.region_id = fr.region_id
+        join   profiles      p on p.church_id = c.id
+        where  fr.forum_id = fid
+          and  p.id        = uid
+      )
     );
 $$;
 
