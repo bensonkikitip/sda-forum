@@ -4,7 +4,7 @@ import { getUserRole } from '@/lib/auth'
 import { SignOutButton } from '@/components/sign-out-button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Shield, Home, Settings, Bell } from 'lucide-react'
+import { Shield, Home, Settings, Bell } from 'lucide-react'
 
 export async function Navbar() {
   const supabase = await createClient()
@@ -57,12 +57,13 @@ export async function Navbar() {
           {/* Inbox / notifications */}
           <Link
             href="/inbox"
-            className="relative p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            className="relative p-3 sm:p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Notifications"
             title="Notifications"
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 h-4 w-4 flex items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
+              <span className="absolute top-1.5 right-1.5 sm:top-1 sm:right-1 h-4 w-4 flex items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -71,7 +72,8 @@ export async function Navbar() {
           {/* Settings */}
           <Link
             href="/settings"
-            className="p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-3 sm:p-2 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Settings"
             title="Settings"
           >
             <Settings className="h-5 w-5" />
@@ -97,22 +99,22 @@ export async function Navbar() {
 
       {/* Mobile bottom nav */}
       <div className="sm:hidden flex border-t border-white/10" style={{ backgroundColor: 'var(--primary)' }}>
-        <Link href="/home" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors">
-          <Home className="h-4 w-4 mb-0.5" />
+        <Link href="/home" className="flex-1 flex flex-col items-center justify-center py-3 text-xs text-white/70 hover:text-white transition-colors min-h-[56px]">
+          <Home className="h-5 w-5 mb-1" />
           Home
         </Link>
-        <Link href="/inbox" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors relative">
-          <Bell className="h-4 w-4 mb-0.5" />
+        <Link href="/inbox" className="flex-1 flex flex-col items-center justify-center py-3 text-xs text-white/70 hover:text-white transition-colors relative min-h-[56px]">
+          <Bell className="h-5 w-5 mb-1" />
           Inbox
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-6 h-3 w-3 bg-accent rounded-full text-[8px] text-accent-foreground flex items-center justify-center font-bold">
-              {unreadCount}
+            <span className="absolute top-1.5 right-[calc(50%-22px)] h-4 w-4 bg-accent rounded-full text-[9px] text-accent-foreground flex items-center justify-center font-bold">
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Link>
         {isModOrAdmin && (
-          <Link href="/admin/forums" className="flex-1 flex flex-col items-center py-2 text-xs text-white/70 hover:text-white transition-colors">
-            <Shield className="h-4 w-4 mb-0.5" />
+          <Link href="/admin/forums" className="flex-1 flex flex-col items-center justify-center py-3 text-xs text-white/70 hover:text-white transition-colors min-h-[56px]">
+            <Shield className="h-5 w-5 mb-1" />
             Admin
           </Link>
         )}
