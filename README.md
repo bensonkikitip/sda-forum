@@ -1,22 +1,22 @@
 # SDA Forum
 
-A communication platform for Seventh-day Adventist church leaders to share events and announcements with their members. Church leaders (admins and moderators) publish posts and events to forums; members receive email notifications and digests to stay up to date with what's happening in their church community.
+A communication platform for Seventh-day Adventist church leaders to share events and announcements with their members. Church leaders (admins and pastors) publish posts and events to forums; members receive email notifications and digests to stay up to date with what's happening in their church community.
 
 ## How it works
 
-**Church leaders** (admins and forum moderators) are responsible for all content. They create forums for different parts of church life, post announcements and upcoming events, and send digest emails to keep members informed.
+**Church leaders** (admins and forum pastors) are responsible for all content. They create forums for different parts of church life, post announcements and upcoming events, and send digest emails to keep members informed.
 
 **Church members** sign up, follow the forums relevant to them, and receive notifications when new content is posted. They can read posts, view event details, and manage which notifications they receive — but posting is reserved for leaders.
 
 ## Features
 
 - **Forums** — channels scoped to specific ministries, groups, or locations; leaders post, members follow
-- **Posts & Announcements** — created by admins and moderators; can be pinned or locked
+- **Posts & Announcements** — created by admins and pastors; can be pinned or locked
 - **Events** — posts with date, time, and location; past events are automatically archived
 - **Topics** — tag system for categorising posts so members can find relevant content
 - **Groups** — visibility-controlled communities (public or invite-only)
 - **Inbox** — in-app notification inbox so members never miss an update
-- **Digest emails** — admins and moderators can send a curated summary of upcoming events, site-wide or per-forum
+- **Digest emails** — admins and pastors can send a curated summary of upcoming events, site-wide or per-forum
 - **Notification preferences** — members control which forums and event types they hear about
 - **Admin panel** — manage members, forums, topics, announcements, reports, and digest sends
 - **Onboarding** — guided setup flow for new members joining the platform

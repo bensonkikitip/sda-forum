@@ -34,7 +34,7 @@ export default async function AdminUsersPage() {
       <div>
         <h1 className="text-2xl font-bold">Manage Users</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Ban members and assign moderator roles.
+          Ban members and assign pastor roles.
         </p>
       </div>
       <UserManagementTable initialUsers={users} />

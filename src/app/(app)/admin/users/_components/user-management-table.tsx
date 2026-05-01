@@ -101,7 +101,7 @@ export function UserManagementTable({ initialUsers }: Props) {
               </Link>
               {u.role !== 'user' && (
                 <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
-                  {u.role}
+                  {u.role === 'moderator' ? 'pastor' : u.role}
                 </Badge>
               )}
               {u.is_banned && <Badge variant="destructive" className="text-xs">Banned</Badge>}
@@ -125,7 +125,7 @@ export function UserManagementTable({ initialUsers }: Props) {
                   : u.role === 'moderator'
                     ? <ShieldOff className="h-3 w-3" />
                     : <ShieldCheck className="h-3 w-3" />}
-                {u.role === 'moderator' ? 'Remove mod' : 'Make mod'}
+                {u.role === 'moderator' ? 'Remove pastor' : 'Make pastor'}
               </Button>
             )}
 

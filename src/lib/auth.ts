@@ -42,13 +42,19 @@ export async function requireAdmin() {
   return user
 }
 
-// Requires admin or moderator
+// Requires admin or pastor (DB role is still 'moderator' — see PR 3 of the
+// foundation pivot for the rebrand rationale).
 export async function requireModerator() {
   const user = await requireUser()
   const role = await getUserRole(user.id)
   if (role !== 'admin' && role !== 'moderator') redirect('/home')
   return user
 }
+
+// Pastor-friendly alias for requireModerator. Use this in newly-written code
+// so the role concept reads naturally; the original name stays for the
+// existing call sites and to match the underlying DB / SQL identifiers.
+export const requirePastor = requireModerator
 
 // Returns true if the user is an admin, OR is a moderator specifically
 // assigned to the given forum. Uses admin client to bypass RLS.
