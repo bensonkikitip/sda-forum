@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/navbar'
 
@@ -8,16 +9,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect('/login')
 
-  // Check ban status
+  // Check ban status + onboarding completeness in one query
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, is_banned')
+    .select('id, display_name, is_banned')
     .eq('id', user.id)
     .maybeSingle()
 
   if (profile?.is_banned) {
     await supabase.auth.signOut()
     redirect('/login?reason=banned')
+  }
+
+  // Guard: new users (display_name empty) must complete onboarding before
+  // accessing any app page. The middleware injects x-pathname so we can
+  // avoid an infinite redirect loop on the /onboarding page itself.
+  const pathname = (await headers()).get('x-pathname') ?? ''
+  if (!profile?.display_name && !pathname.startsWith('/onboarding')) {
+    redirect('/onboarding')
   }
 
   // Auto-promote admin if email matches ADMIN_EMAIL and no role exists yet

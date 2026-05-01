@@ -19,6 +19,7 @@ export default async function HomePage() {
     supabase
       .from('announcements')
       .select('id, title, body_md, created_at')
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order('created_at', { ascending: false })
       .limit(1),
   ])
