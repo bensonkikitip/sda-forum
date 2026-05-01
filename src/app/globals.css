@@ -50,7 +50,7 @@
 
 :root {
   /* SDA navy blue (#003E7E) as primary */
-  --background: oklch(1 0 0);
+  --background: oklch(0.982 0.004 258);
   --foreground: oklch(0.17 0.02 258);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.17 0.02 258);
@@ -65,15 +65,15 @@
   --accent: oklch(0.68 0.13 85);
   --accent-foreground: oklch(0.17 0.02 258);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.01 258);
-  --input: oklch(0.91 0.01 258);
+  --border: oklch(0.93 0.008 258);
+  --input: oklch(0.93 0.008 258);
   --ring: oklch(0.30 0.13 258);
   --chart-1: oklch(0.30 0.13 258);
   --chart-2: oklch(0.68 0.13 85);
   --chart-3: oklch(0.45 0.10 258);
   --chart-4: oklch(0.60 0.08 258);
   --chart-5: oklch(0.75 0.05 258);
-  --radius: 0.5rem;
+  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.17 0.02 258);
   --sidebar-primary: oklch(0.30 0.13 258);

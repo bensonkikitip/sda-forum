@@ -40,7 +40,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1">{children}</main>
+      {/* pb-16 sm:pb-0 reserves space for the fixed mobile bottom nav */}
+      <main className="flex-1 pb-16 sm:pb-0">{children}</main>
     </div>
   )
 }
