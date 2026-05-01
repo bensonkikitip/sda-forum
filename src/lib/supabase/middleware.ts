@@ -3,7 +3,14 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Refreshes the user's auth session on every request so it doesn't expire
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  // Inject the current pathname as a REQUEST header so server layouts can
+  // read it via `headers().get('x-pathname')` — needed for the onboarding guard.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', request.nextUrl.pathname)
+
+  let supabaseResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +24,11 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
-          supabaseResponse = NextResponse.next({ request })
+          // Re-create the response with the enhanced request headers so the
+          // x-pathname header survives cookie refreshes.
+          supabaseResponse = NextResponse.next({
+            request: { headers: requestHeaders },
+          })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -41,9 +52,6 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
-
-  // Inject current path as a header so server layouts can read it
-  supabaseResponse.headers.set('x-invoke-path', request.nextUrl.pathname)
 
   return supabaseResponse
 }
